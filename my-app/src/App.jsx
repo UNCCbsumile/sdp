@@ -28,45 +28,56 @@ function App() {
 
     return (
         <Router>
-            <Navbar /> {/* ✅ Navbar added here */}
-            <Routes>
-                <Route path="/" element={
-                    <div style={styles.container}>
-                        <h1>Dashboard</h1>
-                        <h2>Your Balance: ${balance.toFixed(2)}</h2>
-
-                        {/* Display Bitcoin & Ethereum Prices */}
-                        <div style={styles.cryptoContainer}>
-                            <div style={styles.cryptoBox}>
-                                <h3>Bitcoin (BTC)</h3>
-                                <p>Price: ${cryptoPrices.btc?.usd || "Loading..."}</p>
-                            </div>
-                            <div style={styles.cryptoBox}>
-                                <h3>Ethereum (ETH)</h3>
-                                <p>Price: ${cryptoPrices.eth?.usd || "Loading..."}</p>
-                            </div>
-                        </div>
-
-                        {/* Buttons for Authentication & Trading */}
-                        <div>
-                            <button style={styles.button} onClick={() => alert("Login/Register Coming Soon!")}>Login / Register</button>
-                            <button style={styles.button} onClick={() => alert("Trading Dashboard Coming Soon!")}>Start Trading</button>
-                        </div>
-                    </div>
-                }/>
-                <Route path="/trading" element={<Trading />} />
-                <Route path="/portfolio" element={<Portfolio />} />
-            </Routes>
+          <Navbar />
+          <Routes>
+            <Route path="/" element={
+              <div className="dashboard-container">
+                <h1>Dashboard</h1>
+                <h2>Your Balance: ${balance.toFixed(2)}</h2>
+      
+                <div className="crypto-container">
+                  <div className="crypto-box">
+                    <h3>Bitcoin (BTC)</h3>
+                    <p>Price: ${cryptoPrices.btc?.usd || "Loading..."}</p>
+                  </div>
+                  <div className="crypto-box">
+                    <h3>Ethereum (ETH)</h3>
+                    <p>Price: ${cryptoPrices.eth?.usd || "Loading..."}</p>
+                  </div>
+                </div>
+      
+                <div>
+                  <button className="primary-button" onClick={() => alert("Login/Register Coming Soon!")}>
+                    Login / Register
+                  </button>
+                  <button className="primary-button" onClick={() => alert("Trading Dashboard Coming Soon!")}>
+                    Start Trading
+                  </button>
+                </div>
+              </div>
+            }/>
+            <Route path="/trading" element={<Trading />} />
+            <Route path="/portfolio" element={<Portfolio />} />
+          </Routes>
         </Router>
-    );
+      );
 }
 
 // Styling
-const styles = {
-    container: { textAlign: "center", padding: "50px", fontFamily: "Arial, sans-serif" },
-    cryptoContainer: { display: "flex", justifyContent: "center", gap: "20px", marginTop: "20px" },
-    cryptoBox: { border: "1px solid #ddd", padding: "10px", borderRadius: "8px", width: "180px", textAlign: "center", background: "#f9f9f9" },
-    button: { margin: "10px", padding: "10px 20px", fontSize: "16px", cursor: "pointer", background: "#007bff", color: "#fff", borderRadius: "5px", border: "none" }
-};
+// const styles = {
+//     container: {
+//         minHeight: "100vh",              // full height of the screen
+//         width: "100%",                   // full width
+//         padding: "50px",
+//         fontFamily: "Arial, sans-serif",
+//         display: "flex",
+//         flexDirection: "column",
+//         alignItems: "center",
+//         backgroundColor: "#fff",         // optional: ensures white background
+//     },
+//     cryptoContainer: { display: "flex", justifyContent: "center", gap: "20px", marginTop: "20px" },
+//     cryptoBox: { border: "1px solid #ddd", padding: "10px", borderRadius: "8px", width: "180px", textAlign: "center", background: "#f9f9f9" },
+//     button: { margin: "10px", padding: "10px 20px", fontSize: "16px", cursor: "pointer", background: "#007bff", color: "#fff", borderRadius: "5px", border: "none" }
+// };
 
 export default App;
