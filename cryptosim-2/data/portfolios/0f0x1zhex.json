@@ -1,0 +1,142 @@
+[
+  {
+    "symbol": "USD",
+    "name": "US Dollar",
+    "amount": 8507.119754,
+    "averagePrice": 1,
+    "transactions": [
+      {
+        "type": "buy",
+        "symbol": "BTC",
+        "amount": 0.01,
+        "price": 85287,
+        "timestamp": "2025-04-01T22:28:28.779Z"
+      },
+      {
+        "type": "buy",
+        "symbol": "DOGE",
+        "amount": 10,
+        "price": 0.173915,
+        "timestamp": "2025-04-01T22:34:40.145Z"
+      },
+      {
+        "type": "buy",
+        "symbol": "TRX",
+        "amount": 2,
+        "price": 0.236798,
+        "timestamp": "2025-04-01T22:38:22.311Z"
+      },
+      {
+        "type": "buy",
+        "symbol": "ETH",
+        "amount": 0.01,
+        "price": 1917.87,
+        "timestamp": "2025-04-01T22:43:02.806Z"
+      },
+      {
+        "type": "buy",
+        "symbol": "ADA",
+        "amount": 10,
+        "price": 0.68088,
+        "timestamp": "2025-04-01T22:49:08.369Z"
+      },
+      {
+        "type": "buy",
+        "symbol": "BNB",
+        "amount": 1,
+        "price": 611.81,
+        "timestamp": "2025-04-01T22:50:09.551Z"
+      }
+    ]
+  },
+  {
+    "symbol": "BTC",
+    "name": "BTC",
+    "amount": 0.01,
+    "averagePrice": 85287,
+    "transactions": [
+      {
+        "type": "buy",
+        "symbol": "BTC",
+        "amount": 0.01,
+        "price": 85287,
+        "timestamp": "2025-04-01T22:28:28.779Z"
+      }
+    ]
+  },
+  {
+    "symbol": "DOGE",
+    "name": "DOGE",
+    "amount": 10,
+    "averagePrice": 0.173915,
+    "transactions": [
+      {
+        "type": "buy",
+        "symbol": "DOGE",
+        "amount": 10,
+        "price": 0.173915,
+        "timestamp": "2025-04-01T22:34:40.145Z"
+      }
+    ]
+  },
+  {
+    "symbol": "TRX",
+    "name": "TRX",
+    "amount": 2,
+    "averagePrice": 0.236798,
+    "transactions": [
+      {
+        "type": "buy",
+        "symbol": "TRX",
+        "amount": 2,
+        "price": 0.236798,
+        "timestamp": "2025-04-01T22:38:22.311Z"
+      }
+    ]
+  },
+  {
+    "symbol": "ETH",
+    "name": "ETH",
+    "amount": 0.01,
+    "averagePrice": 1917.87,
+    "transactions": [
+      {
+        "type": "buy",
+        "symbol": "ETH",
+        "amount": 0.01,
+        "price": 1917.87,
+        "timestamp": "2025-04-01T22:43:02.806Z"
+      }
+    ]
+  },
+  {
+    "symbol": "ADA",
+    "name": "ADA",
+    "amount": 10,
+    "averagePrice": 0.68088,
+    "transactions": [
+      {
+        "type": "buy",
+        "symbol": "ADA",
+        "amount": 10,
+        "price": 0.68088,
+        "timestamp": "2025-04-01T22:49:08.369Z"
+      }
+    ]
+  },
+  {
+    "symbol": "BNB",
+    "name": "BNB",
+    "amount": 1,
+    "averagePrice": 611.81,
+    "transactions": [
+      {
+        "type": "buy",
+        "symbol": "BNB",
+        "amount": 1,
+        "price": 611.81,
+        "timestamp": "2025-04-01T22:50:09.551Z"
+      }
+    ]
+  }
+]
