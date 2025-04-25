@@ -16,8 +16,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <head />
+      <body className={inter.className} suppressHydrationWarning>
         <UserProvider>
           {children}
         </UserProvider>
@@ -25,7 +26,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-
-
-import './globals.css'
