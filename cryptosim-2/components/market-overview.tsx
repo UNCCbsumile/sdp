@@ -74,7 +74,7 @@ export default function MarketOverview({
       </CardHeader>
       <CardContent>
         {error && (
-          <Alert variant="default" className="mb-4">
+          <Alert variant="warning" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
