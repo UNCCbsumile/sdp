@@ -11,7 +11,7 @@ import { useCryptoData } from "@/hooks/use-crypto-data"
 
 export default function Dashboard() {
   const { cryptoData, isLoading, error, isLiveData, refreshData } = useCryptoData()
-  const { portfolio, executeOrder, portfolioValue } = usePortfolio()
+  const { portfolio, executeOrder, portfolioValue } = usePortfolio(cryptoData)
   const [activeTab, setActiveTab] = useState("market")
 
   return (

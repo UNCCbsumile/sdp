@@ -81,7 +81,7 @@ export function setupPriceUpdates(
 ) {
   let consecutiveErrors = 0
   const maxConsecutiveErrors = 3
-  let pollInterval = 10000 // Start with 10 seconds
+  let pollInterval = 5000 // Start with 5 seconds
 
   const intervalId = setInterval(async () => {
     try {
@@ -98,10 +98,10 @@ export function setupPriceUpdates(
       consecutiveErrors = 0
 
       // Reset poll interval if it was increased
-      if (pollInterval > 10000) {
-        console.log("Resetting poll interval to 10 seconds")
+      if (pollInterval > 5000) {
+        console.log("Resetting poll interval to 5 seconds")
         clearInterval(intervalId)
-        pollInterval = 10000
+        pollInterval = 5000
         setupPriceUpdates(onPriceUpdate, onError)
       }
     } catch (error) {
@@ -111,7 +111,7 @@ export function setupPriceUpdates(
       if (consecutiveErrors >= maxConsecutiveErrors) {
         // Increase polling interval to avoid rate limits
         clearInterval(intervalId)
-        pollInterval = Math.min(pollInterval * 2, 60000) // Double interval up to 1 minute max
+        pollInterval = Math.min(pollInterval * 2, 30000) // Double interval up to 30 seconds max
         console.log(`Increasing poll interval to ${pollInterval / 1000} seconds due to errors`)
         setupPriceUpdates(onPriceUpdate, onError)
       }

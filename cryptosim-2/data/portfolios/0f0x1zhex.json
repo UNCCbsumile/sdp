@@ -2,15 +2,36 @@
   {
     "symbol": "USD",
     "name": "US Dollar",
-    "amount": 5254.65,
+    "amount": 3128.7743900000005,
     "averagePrice": 1,
     "transactions": [
       {
         "type": "buy",
         "symbol": "BTC",
         "amount": 0.05,
-        "price": 94907,
-        "timestamp": "2025-04-25T21:27:07.163Z"
+        "price": 94825,
+        "timestamp": "2025-04-25T21:34:59.379Z"
+      },
+      {
+        "type": "buy",
+        "symbol": "XRP",
+        "amount": 150,
+        "price": 2.19,
+        "timestamp": "2025-04-25T21:36:39.313Z"
+      },
+      {
+        "type": "buy",
+        "symbol": "DOGE",
+        "amount": 10,
+        "price": 0.181561,
+        "timestamp": "2025-04-25T21:41:35.554Z"
+      },
+      {
+        "type": "buy",
+        "symbol": "ETH",
+        "amount": 1,
+        "price": 1799.66,
+        "timestamp": "2025-04-25T21:42:00.022Z"
       }
     ]
   },
@@ -18,14 +39,59 @@
     "symbol": "BTC",
     "name": "BTC",
     "amount": 0.05,
-    "averagePrice": 94907,
+    "averagePrice": 94825,
     "transactions": [
       {
         "type": "buy",
         "symbol": "BTC",
         "amount": 0.05,
-        "price": 94907,
-        "timestamp": "2025-04-25T21:27:07.163Z"
+        "price": 94825,
+        "timestamp": "2025-04-25T21:34:59.379Z"
+      }
+    ]
+  },
+  {
+    "symbol": "XRP",
+    "name": "XRP",
+    "amount": 150,
+    "averagePrice": 2.19,
+    "transactions": [
+      {
+        "type": "buy",
+        "symbol": "XRP",
+        "amount": 150,
+        "price": 2.19,
+        "timestamp": "2025-04-25T21:36:39.313Z"
+      }
+    ]
+  },
+  {
+    "symbol": "DOGE",
+    "name": "DOGE",
+    "amount": 10,
+    "averagePrice": 0.181561,
+    "transactions": [
+      {
+        "type": "buy",
+        "symbol": "DOGE",
+        "amount": 10,
+        "price": 0.181561,
+        "timestamp": "2025-04-25T21:41:35.554Z"
+      }
+    ]
+  },
+  {
+    "symbol": "ETH",
+    "name": "ETH",
+    "amount": 1,
+    "averagePrice": 1799.66,
+    "transactions": [
+      {
+        "type": "buy",
+        "symbol": "ETH",
+        "amount": 1,
+        "price": 1799.66,
+        "timestamp": "2025-04-25T21:42:00.022Z"
       }
     ]
   }

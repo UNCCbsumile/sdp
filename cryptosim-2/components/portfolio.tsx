@@ -32,17 +32,28 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder }: Portf
     }
   })
 
-  // Filter out zero balance items
-  const activePortfolio = portfolioWithValues.filter((item) => item.amount > 0)
+  // Filter out USD and zero balance items
+  const activePortfolio = portfolioWithValues.filter((item) => item.amount > 0 && item.symbol !== "USD")
+  const usdBalance = portfolioWithValues.find((item) => item.symbol === "USD")?.amount || 0
 
-  // Calculate total portfolio value
+  // Calculate total portfolio value (excluding USD)
   const totalValue = activePortfolio.reduce((sum, item) => sum + item.currentValue, 0)
 
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Your Portfolio</CardTitle>
+          <CardTitle>Available Balance</CardTitle>
+          <CardDescription>Your available funds for trading</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{formatCurrency(usdBalance)}</div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Crypto Holdings</CardTitle>
           <CardDescription>Track your cryptocurrency holdings and performance</CardDescription>
         </CardHeader>
         <CardContent>
