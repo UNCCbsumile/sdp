@@ -74,7 +74,7 @@ export default function MarketOverview({
       </CardHeader>
       <CardContent>
         {error && (
-          <Alert variant="warning" className="mb-4">
+          <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
@@ -89,41 +89,43 @@ export default function MarketOverview({
               ))}
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Symbol</TableHead>
-                <TableHead className="text-right">Price</TableHead>
-                <TableHead className="text-right">24h Change</TableHead>
-                <TableHead className="text-right">Market Cap</TableHead>
-                <TableHead className="text-right">Volume (24h)</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredData.map((crypto) => (
-                <TableRow key={crypto.id}>
-                  <TableCell className="font-medium">{crypto.name}</TableCell>
-                  <TableCell>{crypto.symbol}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(crypto.currentPrice)}</TableCell>
-                  <TableCell
-                    className={`text-right ${crypto.priceChangePercentage24h >= 0 ? "text-green-500" : "text-red-500"}`}
-                  >
-                    {formatPercentage(crypto.priceChangePercentage24h)}
-                  </TableCell>
-                  <TableCell className="text-right">{formatCurrency(crypto.marketCap)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(crypto.totalVolume)}</TableCell>
-                </TableRow>
-              ))}
-              {filteredData.length === 0 && (
+          <div className="h-[500px] overflow-y-auto border rounded-md">
+            <Table>
+              <TableHeader className="sticky top-0 bg-background">
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-4">
-                    No cryptocurrencies found matching your search.
-                  </TableCell>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Symbol</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead className="text-right">24h Change</TableHead>
+                  <TableHead className="text-right">Market Cap</TableHead>
+                  <TableHead className="text-right">Volume (24h)</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredData.map((crypto) => (
+                  <TableRow key={crypto.id}>
+                    <TableCell className="font-medium">{crypto.name}</TableCell>
+                    <TableCell>{crypto.symbol}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(crypto.currentPrice)}</TableCell>
+                    <TableCell
+                      className={`text-right ${crypto.priceChangePercentage24h >= 0 ? "text-green-500" : "text-red-500"}`}
+                    >
+                      {formatPercentage(crypto.priceChangePercentage24h)}
+                    </TableCell>
+                    <TableCell className="text-right">{formatCurrency(crypto.marketCap)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(crypto.totalVolume)}</TableCell>
+                  </TableRow>
+                ))}
+                {filteredData.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-4">
+                      No cryptocurrencies found matching your search.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
     </Card>
