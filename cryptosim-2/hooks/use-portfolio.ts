@@ -56,9 +56,9 @@ export function usePortfolio(cryptoData: CryptoData[]) {
           }
           // Log success
           console.log(`Successful API fetch: /api/portfolio?userId=${user.id}`);
-          const data = await response.json();
-          setPortfolio(data);
-          portfolioRef.current = data;
+            const data = await response.json();
+            setPortfolio(data);
+            portfolioRef.current = data;
         } catch (error) {
           console.error('Error loading portfolio:', error);
         }

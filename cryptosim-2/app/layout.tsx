@@ -1,36 +1,42 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Lora } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "./context/UserContext";
 import { ThemeProvider } from "@/components/theme-provider";
 
-const inter = Inter({ subsets: ["latin"] });
+// Initialize Lora as the main font
+const lora = Lora({
+    subsets: ['latin'],
+    weight: ['400', '500', '600', '700'],
+    style: ['normal', 'italic'],
+    display: 'swap',
+});
 
 export const metadata: Metadata = {
-  title: "CryptoSim",
-  description: "A cryptocurrency portfolio simulator",
+    title: "CryptoSim",
+    description: "A cryptocurrency portfolio simulator",
 };
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <head />
-      <body className={inter.className} suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <UserProvider>
-            {children}
-          </UserProvider>
-        </ThemeProvider>
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en" suppressHydrationWarning>
+            <head />
+            <body className={lora.className} suppressHydrationWarning>
+                <ThemeProvider
+                    attribute="class"
+                    defaultTheme="system"
+                    enableSystem
+                    disableTransitionOnChange
+                >
+                    <UserProvider>
+                        {children}
+                    </UserProvider>
+                </ThemeProvider>
+            </body>
+        </html>
+    );
 }
