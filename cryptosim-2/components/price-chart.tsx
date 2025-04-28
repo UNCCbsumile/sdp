@@ -233,7 +233,7 @@ export default function PriceChart({ symbol, currentPrice, sparklineData = [] }:
               <XAxis dataKey="timestamp" tickFormatter={formatXAxis} minTickGap={30} />
               <YAxis domain={["auto", "auto"]} tickFormatter={(value) => formatCurrency(value, true)} />
               <Tooltip content={<CustomTooltip />} />
-              <Line type="monotone" dataKey="price" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 6 }} />
+              <Line type="linear" dataKey="price" isAnimationActive={false} stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 6 }}/>
             </LineChart>
           </ResponsiveContainer>
         </div>
