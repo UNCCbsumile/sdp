@@ -96,9 +96,6 @@ export async function fetchInitialCryptoData(): Promise<CryptoData[]> {
       throw new Error(`API error: ${response.status}`)
     }
 
-    // Log success
-    console.log("Successful API fetch: /api/crypto");
-
     const data: BinanceTicker[] = await response.json()
 
     // Filter for our selected symbols and map to our app's data structure

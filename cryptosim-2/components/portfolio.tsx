@@ -1,5 +1,5 @@
 "use client"
-// Import UI components and types
+//all imports
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -7,16 +7,14 @@ import type { CryptoData } from "@/types/crypto"
 import type { PortfolioItem } from "@/types/portfolio"
 import { formatCurrency } from "@/lib/utils"
 
-// Props for the Portfolio component
 interface PortfolioProps {
   portfolio: PortfolioItem[]
   cryptoData: CryptoData[]
   executeOrder: (type: "buy" | "sell", symbol: string, amount: number, price: number) => void
 }
 
-// Main Portfolio component: shows balances, holdings, and transaction history
 export default function Portfolio({ portfolio, cryptoData, executeOrder }: PortfolioProps) {
-  // Calculate portfolio items with current values and profit/loss
+  // Calculate portfolio items with current values
   const portfolioWithValues = portfolio.map((item) => {
     const cryptoInfo = cryptoData.find((crypto) => crypto.symbol === item.symbol)
     const currentPrice = cryptoInfo?.currentPrice || 0
@@ -34,38 +32,23 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder }: Portf
     }
   })
 
-  // Filter out USD and zero balance items for active crypto holdings
-  const activePortfolio = portfolioWithValues.filter((item) => item.amount > 0 && item.symbol !== "USD")
-  // Get available USD balance
-  const usdBalance = portfolioWithValues.find((item) => item.symbol === "USD")?.amount || 0
+  // Filter out zero balance items
+  const activePortfolio = portfolioWithValues.filter((item) => item.amount > 0)
 
-  // Calculate total value of crypto holdings (excluding USD)
+  // Calculate total portfolio value
   const totalValue = activePortfolio.reduce((sum, item) => sum + item.currentValue, 0)
 
   return (
     <div className="space-y-4">
-      {/* Card showing available USD balance */}
       <Card>
         <CardHeader>
-          <CardTitle>Available Balance</CardTitle>
-          <CardDescription>Your available funds for trading</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(usdBalance)}</div>
-        </CardContent>
-      </Card>
-
-      {/* Card showing crypto holdings and their performance */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Crypto Holdings</CardTitle>
+          <CardTitle>Your Portfolio</CardTitle>
           <CardDescription>Track your cryptocurrency holdings and performance</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold mb-4">Total Value: {formatCurrency(totalValue)}</div>
 
           {activePortfolio.length > 0 ? (
-            // Table of active crypto holdings
             <Table>
               <TableHeader>
                 <TableRow>
@@ -79,7 +62,6 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder }: Portf
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {/* Render each holding as a table row */}
                 {activePortfolio.map((item) => (
                   <TableRow key={item.symbol}>
                     <TableCell className="font-medium">{item.symbol}</TableCell>
@@ -91,7 +73,6 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder }: Portf
                       {formatCurrency(item.profitLoss)} ({item.profitLossPercentage.toFixed(2)}%)
                     </TableCell>
                     <TableCell>
-                      {/* Button to sell all of this asset */}
                       <Button
                         variant="outline"
                         size="sm"
@@ -105,7 +86,6 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder }: Portf
               </TableBody>
             </Table>
           ) : (
-            // Message if no crypto holdings
             <div className="text-center py-8 text-muted-foreground">
               Your portfolio is empty. Start trading to see your holdings here.
             </div>
@@ -113,7 +93,6 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder }: Portf
         </CardContent>
       </Card>
 
-      {/* Card showing recent transaction history */}
       <Card>
         <CardHeader>
           <CardTitle>Transaction History</CardTitle>
@@ -132,12 +111,6 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder }: Portf
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* 
-                Flatten all transactions from all portfolio items,
-                sort them by most recent,
-                deduplicate similar transactions within 1 second,
-                and show the 10 most recent.
-              */}
               {portfolio
                 .flatMap((item) => item.transactions)
                 .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
@@ -155,15 +128,11 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder }: Portf
                 .slice(0, 10)
                 .map((transaction, index) => (
                   <TableRow key={`${transaction.type}-${transaction.symbol}-${transaction.amount}-${transaction.price}-${transaction.timestamp}-${index}`}>
-                    {/* Show transaction date/time */}
                     <TableCell>{new Date(transaction.timestamp).toLocaleString()}</TableCell>
-                    {/* Show buy/sell type with color */}
                     <TableCell className={transaction.type === "buy" ? "text-green-500" : "text-red-500"}>
                       {transaction.type.toUpperCase()}
                     </TableCell>
-                    {/* Show asset symbol */}
                     <TableCell>{transaction.symbol}</TableCell>
-                    {/* Show amount, price, and total value */}
                     <TableCell className="text-right">{transaction.amount.toFixed(8)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(transaction.price)}</TableCell>
                     <TableCell className="text-right">
@@ -171,7 +140,6 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder }: Portf
                     </TableCell>
                   </TableRow>
                 ))}
-              {/* Show message if there are no transactions */}
               {portfolio.flatMap((item) => item.transactions).length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
