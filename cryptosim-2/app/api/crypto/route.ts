@@ -6,7 +6,7 @@ const COINGECKO_API_BASE = "https://api.coingecko.com/api/v3"
 // In-memory cache
 let cachedData: any = null
 let cacheTime = 0
-const CACHE_DURATION = 2 * 60 * 1000 // 2 minutes in milliseconds
+const CACHE_DURATION = 10 * 60 * 1000 // 10 minutes in milliseconds
 
 export async function GET() {
   try {
@@ -24,7 +24,7 @@ export async function GET() {
         headers: {
           Accept: "application/json",
         },
-        next: { revalidate: 120 }, // Cache for 2 minutes
+        next: { revalidate: 300 }, // Cache for 5 minutes
       },
     )
 
@@ -89,17 +89,6 @@ function getMockCryptoData() {
       total_volume: 15698745632,
       price_change_percentage_24h: 1.8,
       sparkline_in_7d: { price: generateMockSparkline(3400, 3) },
-    },
-    {
-      id: "binancecoin",
-      symbol: "bnb",
-      name: "Binance Coin",
-      image: "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png",
-      current_price: 567.89,
-      market_cap: 87654321098,
-      total_volume: 2345678901,
-      price_change_percentage_24h: -0.7,
-      sparkline_in_7d: { price: generateMockSparkline(570, 2) },
     },
     {
       id: "solana",

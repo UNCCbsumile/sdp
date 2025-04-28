@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import type { PortfolioItem, Transaction } from "@/types/portfolio"
+import type { CryptoData } from "@/types/crypto"
 import { useUser } from "@/app/context/UserContext"
 
 // Initial portfolio with starting USD balance
@@ -18,7 +19,7 @@ const INITIAL_PORTFOLIO: PortfolioItem[] = [
 // Global transaction tracking with timestamps
 const transactionLog = new Map<string, { timestamp: number, processed: boolean }>();
 
-export function usePortfolio() {
+export function usePortfolio(cryptoData: CryptoData[] = []) {
   const { user } = useUser();
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>(INITIAL_PORTFOLIO);
   const portfolioRef = useRef<PortfolioItem[]>(INITIAL_PORTFOLIO);
@@ -87,12 +88,15 @@ export function usePortfolio() {
     }
   }, [portfolio, user]);
 
-  // Calculate total portfolio value (excluding USD)
+  // Calculate total portfolio value (including both USD and crypto)
   const portfolioValue = portfolio.reduce((total, item) => {
     if (item.symbol === "USD") {
       return total + item.amount;
     }
-    return total;
+    // For crypto, we need to get the current price from cryptoData
+    const cryptoInfo = cryptoData.find((crypto) => crypto.symbol === item.symbol);
+    const currentPrice = cryptoInfo?.currentPrice || 0;
+    return total + (item.amount * currentPrice);
   }, 0);
 
   // Execute a buy or sell order

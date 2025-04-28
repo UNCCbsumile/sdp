@@ -10,14 +10,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Strategy, StrategyType } from "@/types/strategy"
 import type { StrategyConfig } from "@/types/strategy"
 import type { CryptoData } from "@/types/crypto"
+import { useStrategyManager } from "@/hooks/use-strategy-manager"
 
 interface StrategyConfigProps {
   cryptoData: CryptoData[]
   onStrategyChange: (strategy: Strategy) => void
   strategy: Strategy | null
+  lastExecution: Record<string, string>
 }
 
-export default function StrategyConfig({ cryptoData, onStrategyChange, strategy }: StrategyConfigProps) {
+export default function StrategyConfig({ cryptoData, onStrategyChange, strategy, lastExecution }: StrategyConfigProps) {
   const [selectedType, setSelectedType] = useState<StrategyType>(strategy?.config.type || 'DCA');
 
   const handleConfigChange = (updates: Partial<StrategyConfig>) => {
@@ -166,6 +168,12 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy 
             onCheckedChange={(checked) => handleConfigChange({ enabled: checked })}
           />
         </div>
+
+        {strategy && lastExecution[strategy.id] && (
+          <div className="text-sm text-muted-foreground">
+            Last executed: {new Date(lastExecution[strategy.id]).toLocaleString()}
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="strategy-type">Strategy Type</Label>

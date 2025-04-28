@@ -2,6 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { Strategy, StrategyConfig } from '@/types/strategy';
 import { CryptoData } from '@/types/crypto';
 
+// Helper function to calculate moving average
+const calculateMovingAverage = (prices: number[], period: number): number => {
+  if (prices.length < period) return 0;
+  const sum = prices.slice(-period).reduce((a, b) => a + b, 0);
+  return sum / period;
+};
+
 export function useStrategyManager(
   strategy: Strategy | null,
   cryptoData: CryptoData[],
@@ -10,10 +17,32 @@ export function useStrategyManager(
   const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const [lastExecution, setLastExecution] = useState<Record<string, string>>({});
   const [isClient, setIsClient] = useState(false);
+  const [priceHistory, setPriceHistory] = useState<Record<string, number[]>>({});
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Update price history when crypto data changes
+  useEffect(() => {
+    if (!cryptoData.length) return;
+
+    setPriceHistory(prev => {
+      const newHistory = { ...prev };
+      cryptoData.forEach(crypto => {
+        if (!newHistory[crypto.id]) {
+          newHistory[crypto.id] = [];
+        }
+        // Add current price to history
+        newHistory[crypto.id].push(crypto.currentPrice);
+        // Keep only the last 100 prices to limit memory usage
+        if (newHistory[crypto.id].length > 100) {
+          newHistory[crypto.id] = newHistory[crypto.id].slice(-100);
+        }
+      });
+      return newHistory;
+    });
+  }, [cryptoData]);
 
   // DCA Strategy Implementation
   const executeDCAStrategy = (config: StrategyConfig & { type: 'DCA' }) => {
@@ -36,23 +65,25 @@ export function useStrategyManager(
     const { symbol, shortPeriod, longPeriod, amount } = config;
     const cryptoInfo = cryptoData.find((c) => c.id === symbol);
     
-    if (!cryptoInfo) return;
+    if (!cryptoInfo || !priceHistory[symbol] || priceHistory[symbol].length < longPeriod) return;
 
-    // In a real implementation, you would:
-    // 1. Fetch historical price data
-    // 2. Calculate moving averages
-    // 3. Generate buy/sell signals
-    // For now, we'll use a simplified version
-    const shortMA = cryptoInfo.currentPrice; // This should be calculated from historical data
-    const longMA = cryptoInfo.currentPrice * 0.99; // This should be calculated from historical data
+    // Calculate actual moving averages
+    const shortMA = calculateMovingAverage(priceHistory[symbol], shortPeriod);
+    const longMA = calculateMovingAverage(priceHistory[symbol], longPeriod);
 
-    if (shortMA > longMA) {
-      // Buy signal
+    // Get previous values for trend analysis
+    const prevShortMA = calculateMovingAverage(priceHistory[symbol].slice(0, -1), shortPeriod);
+    const prevLongMA = calculateMovingAverage(priceHistory[symbol].slice(0, -1), longPeriod);
+
+    // Generate signals based on crossover
+    if (shortMA > longMA && prevShortMA <= prevLongMA) {
+      // Buy signal: short MA crosses above long MA
       const cryptoAmount = amount / cryptoInfo.currentPrice;
       executeOrder('buy', cryptoInfo.symbol, cryptoAmount, cryptoInfo.currentPrice);
-    } else if (shortMA < longMA) {
-      // Sell signal
-      executeOrder('sell', cryptoInfo.symbol, amount, cryptoInfo.currentPrice);
+    } else if (shortMA < longMA && prevShortMA >= prevLongMA) {
+      // Sell signal: short MA crosses below long MA
+      const cryptoAmount = amount / cryptoInfo.currentPrice;
+      executeOrder('sell', cryptoInfo.symbol, cryptoAmount, cryptoInfo.currentPrice);
     }
     
     setLastExecution(prev => ({ ...prev, [strategy!.id]: new Date().toISOString() }));

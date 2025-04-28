@@ -22,9 +22,20 @@ interface TradingViewProps {
   isLoading: boolean
   executeOrder: (type: "buy" | "sell", symbol: string, amount: number, price: number) => void
   portfolio: PortfolioItem[]
+  strategy: Strategy | null
+  onStrategyChange: (strategy: Strategy) => void
+  lastExecution: Record<string, string>
 }
 
-export default function TradingView({ cryptoData, isLoading, executeOrder, portfolio }: TradingViewProps) {
+export default function TradingView({ 
+  cryptoData, 
+  isLoading, 
+  executeOrder, 
+  portfolio,
+  strategy,
+  onStrategyChange,
+  lastExecution
+}: TradingViewProps) {
   const [mounted, setMounted] = useState(false)
   const [selectedCrypto, setSelectedCrypto] = useState<string>("")
   const [amount, setAmount] = useState<string>("")
@@ -32,14 +43,10 @@ export default function TradingView({ cryptoData, isLoading, executeOrder, portf
   const [isSubmitting, setIsSubmitting] = useState(false)
   const submitTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [activeTab, setActiveTab] = useState<"manual" | "automated">("manual")
-  const [strategy, setStrategy] = useState<Strategy | null>(null)
 
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  // Initialize strategy manager
-  useStrategyManager(strategy, cryptoData, executeOrder)
 
   // Set default selected crypto when data loads
   useEffect(() => {
@@ -79,10 +86,6 @@ export default function TradingView({ cryptoData, isLoading, executeOrder, portf
     submitTimeoutRef.current = setTimeout(() => {
       setIsSubmitting(false)
     }, 2000) // 2 second cooldown
-  }
-
-  const handleStrategyChange = (updatedStrategy: Strategy) => {
-    setStrategy(updatedStrategy)
   }
 
   // Cleanup timeout on unmount
@@ -239,7 +242,8 @@ export default function TradingView({ cryptoData, isLoading, executeOrder, portf
               <StrategyConfig
                 cryptoData={cryptoData}
                 strategy={strategy}
-                onStrategyChange={handleStrategyChange}
+                onStrategyChange={onStrategyChange}
+                lastExecution={lastExecution}
               />
             </TabsContent>
           </Tabs>

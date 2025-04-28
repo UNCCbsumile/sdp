@@ -8,17 +8,20 @@ import TradingView from "@/components/trading-view"
 import Portfolio from "@/components/portfolio"
 import { usePortfolio } from "@/hooks/use-portfolio"
 import { useCryptoData } from "@/hooks/use-crypto-data"
+import { useStrategyManager } from "@/hooks/use-strategy-manager"
 
 export default function Dashboard() {
   const { cryptoData, isLoading, error, isLiveData, refreshData } = useCryptoData()
-  const { portfolio, executeOrder, portfolioValue } = usePortfolio()
+  const { portfolio, executeOrder, portfolioValue } = usePortfolio(cryptoData)
   const [activeTab, setActiveTab] = useState("market")
+  const [strategy, setStrategy] = useState<Strategy | null>(null)
+  const { lastExecution } = useStrategyManager(strategy, cryptoData, executeOrder)
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header portfolioValue={portfolioValue} />
 
-      <div className="container mx-auto px-4 py-6 flex-1">
+      <div className="container mx-auto p-4">
         <Tabs defaultValue="market" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="market">Market Overview</TabsTrigger>
@@ -42,6 +45,9 @@ export default function Dashboard() {
               isLoading={isLoading}
               executeOrder={executeOrder}
               portfolio={portfolio}
+              strategy={strategy}
+              onStrategyChange={setStrategy}
+              lastExecution={lastExecution}
             />
           </TabsContent>
 
