@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import axios from "axios"
-
+const COINMARKETCAP_API_KEY = "d1166654-2fa8-4d0e-86be-dd4c189093d8"
 // In-memory cache
 let cachedData: any = null
 let cacheTime = 0
@@ -37,7 +37,7 @@ export async function GET() {
       "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=10&convert=USD",
       {
         headers: {
-          "X-CMC_PRO_API_KEY": process.env.COINMARKETCAP_API_KEY!,
+          "X-CMC_PRO_API_KEY": COINMARKETCAP_API_KEY!,
           "Accept": "application/json",
         },
       }
