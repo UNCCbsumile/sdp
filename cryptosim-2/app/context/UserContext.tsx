@@ -49,12 +49,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        return false;
+        throw new Error("Login failed");
       }
 
       const userData = await response.json();
       setUser(userData);
       Cookies.set('user', JSON.stringify(userData), { expires: 7 }); // Cookie expires in 7 days
+      console.log("Successful API fetch: /api/auth/login");
       return true;
     } catch (error) {
       console.error('Login error:', error);
@@ -73,12 +74,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        return false;
+        throw new Error("Registration failed");
       }
 
       const userData = await response.json();
       setUser(userData);
       Cookies.set('user', JSON.stringify(userData), { expires: 7 }); // Cookie expires in 7 days
+      console.log("Successful API fetch: /api/auth/register");
       return true;
     } catch (error) {
       console.error('Registration error:', error);

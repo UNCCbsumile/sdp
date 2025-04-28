@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import type { PortfolioItem, Transaction } from "@/types/portfolio"
+import type { CryptoData } from "@/types/crypto"
 import { useUser } from "@/app/context/UserContext"
 
 // Initial portfolio with starting USD balance
@@ -18,7 +19,7 @@ const INITIAL_PORTFOLIO: PortfolioItem[] = [
 // Global transaction tracking with timestamps
 const transactionLog = new Map<string, { timestamp: number, processed: boolean }>();
 
-export function usePortfolio() {
+export function usePortfolio(cryptoData: CryptoData[]) {
   const { user } = useUser();
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>(INITIAL_PORTFOLIO);
   const portfolioRef = useRef<PortfolioItem[]>(INITIAL_PORTFOLIO);
@@ -50,11 +51,14 @@ export function usePortfolio() {
       if (user) {
         try {
           const response = await fetch(`/api/portfolio?userId=${user.id}`);
-          if (response.ok) {
+          if (!response.ok) {
+            throw new Error("Failed to fetch portfolio");
+          }
+          // Log success
+          console.log(`Successful API fetch: /api/portfolio?userId=${user.id}`);
             const data = await response.json();
             setPortfolio(data);
             portfolioRef.current = data;
-          }
         } catch (error) {
           console.error('Error loading portfolio:', error);
         }
@@ -80,6 +84,10 @@ export function usePortfolio() {
             userId: user.id,
             portfolio,
           }),
+        }).then(response => {
+          if (!response.ok) throw new Error("Failed to update portfolio");
+          // Log success
+          console.log("Successful API fetch: /api/portfolio");
         });
       } catch (error) {
         console.error('Error saving portfolio:', error);
@@ -87,10 +95,15 @@ export function usePortfolio() {
     }
   }, [portfolio, user]);
 
-  // Calculate total portfolio value (excluding USD)
+  // Calculate total portfolio value (including USD and crypto assets)
   const portfolioValue = portfolio.reduce((total, item) => {
     if (item.symbol === "USD") {
       return total + item.amount;
+    }
+    // For crypto assets, multiply amount by current price
+    const cryptoInfo = cryptoData.find((crypto: CryptoData) => crypto.symbol === item.symbol);
+    if (cryptoInfo) {
+      return total + (item.amount * cryptoInfo.currentPrice);
     }
     return total;
   }, 0);
