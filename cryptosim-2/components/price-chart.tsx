@@ -45,6 +45,17 @@ export default function PriceChart({ symbol, currentPrice, sparklineData = [] }:
     }
   }, [symbol, currentPrice, timeRange, sparklineData])
 
+  // Reset and generate chart when time range changes
+  useEffect(() => {
+    if (!symbol) return;
+
+    setIsLoading(true);
+    setChartData([]);
+    chartDataRef.current = [];
+
+    generateHistoricalData();
+  }, [timeRange]);
+  
   // Update chart with real-time price
   useEffect(() => {
     if (!symbol || chartDataRef.current.length === 0) return
