@@ -43,6 +43,9 @@ export async function fetchCryptoData(): Promise<CryptoData[]> {
       throw new Error(`API error: ${response.status}`)
     }
 
+    // Log success
+    console.log("Successful API fetch: /api/crypto");
+
     const data = await response.json()
 
     // Check if we got an error with mock data

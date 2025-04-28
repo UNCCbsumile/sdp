@@ -51,11 +51,14 @@ export function usePortfolio(cryptoData: CryptoData[]) {
       if (user) {
         try {
           const response = await fetch(`/api/portfolio?userId=${user.id}`);
-          if (response.ok) {
-            const data = await response.json();
-            setPortfolio(data);
-            portfolioRef.current = data;
+          if (!response.ok) {
+            throw new Error("Failed to fetch portfolio");
           }
+          // Log success
+          console.log(`Successful API fetch: /api/portfolio?userId=${user.id}`);
+          const data = await response.json();
+          setPortfolio(data);
+          portfolioRef.current = data;
         } catch (error) {
           console.error('Error loading portfolio:', error);
         }
@@ -81,6 +84,10 @@ export function usePortfolio(cryptoData: CryptoData[]) {
             userId: user.id,
             portfolio,
           }),
+        }).then(response => {
+          if (!response.ok) throw new Error("Failed to update portfolio");
+          // Log success
+          console.log("Successful API fetch: /api/portfolio");
         });
       } catch (error) {
         console.error('Error saving portfolio:', error);

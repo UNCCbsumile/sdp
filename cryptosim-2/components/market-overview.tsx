@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 
+// Props for the MarketOverview component
 interface MarketOverviewProps {
   cryptoData: CryptoData[]
   isLoading: boolean
@@ -20,6 +21,7 @@ interface MarketOverviewProps {
   refreshData?: () => void
 }
 
+// Displays a searchable, refreshable table of cryptocurrency market data
 export default function MarketOverview({
   cryptoData,
   isLoading,
@@ -27,8 +29,10 @@ export default function MarketOverview({
   isLiveData = false,
   refreshData,
 }: MarketOverviewProps) {
+  // State for the search input
   const [searchTerm, setSearchTerm] = useState("")
 
+  // Filter the crypto data based on the search term (by name or symbol)
   const filteredData = cryptoData.filter(
     (crypto) =>
       crypto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -44,6 +48,7 @@ export default function MarketOverview({
             <CardDescription>Cryptocurrency market data</CardDescription>
           </div>
           <div className="flex items-center gap-2">
+            {/* Show whether data is live or simulated */}
             {isLiveData ? (
               <Badge variant="outline" className="flex items-center gap-1 bg-green-50 text-green-700 border-green-200">
                 <Wifi className="h-3 w-3" />
@@ -55,6 +60,7 @@ export default function MarketOverview({
                 Simulated Data
               </Badge>
             )}
+            {/* Button to refresh data, if provided */}
             {refreshData && (
               <Button variant="outline" size="sm" onClick={refreshData} disabled={isLoading}>
                 <RefreshCw className={`mr-1 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
@@ -63,6 +69,7 @@ export default function MarketOverview({
             )}
           </div>
         </div>
+        {/* Search input for filtering cryptocurrencies */}
         <div className="pt-2">
           <Input
             placeholder="Search cryptocurrencies..."
@@ -73,6 +80,7 @@ export default function MarketOverview({
         </div>
       </CardHeader>
       <CardContent>
+        {/* Show error alert if there is an error */}
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -80,6 +88,7 @@ export default function MarketOverview({
           </Alert>
         )}
 
+        {/* Show loading skeletons while data is loading */}
         {isLoading ? (
           <div className="space-y-2">
             {Array(10)
@@ -89,6 +98,7 @@ export default function MarketOverview({
               ))}
           </div>
         ) : (
+          // Table of filtered cryptocurrency data
           <div className="h-[500px] overflow-y-auto border rounded-md">
             <Table>
               <TableHeader className="sticky top-0 bg-background">
@@ -102,6 +112,7 @@ export default function MarketOverview({
                 </TableRow>
               </TableHeader>
               <TableBody>
+                {/* Render each cryptocurrency as a table row */}
                 {filteredData.map((crypto) => (
                   <TableRow key={crypto.id}>
                     <TableCell className="font-medium">{crypto.name}</TableCell>
@@ -116,6 +127,7 @@ export default function MarketOverview({
                     <TableCell className="text-right">{formatCurrency(crypto.totalVolume)}</TableCell>
                   </TableRow>
                 ))}
+                {/* Show message if no cryptocurrencies match the search */}
                 {filteredData.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-4">

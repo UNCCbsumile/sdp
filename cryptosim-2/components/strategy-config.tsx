@@ -11,15 +11,19 @@ import { Strategy, StrategyType } from "@/types/strategy"
 import type { StrategyConfig } from "@/types/strategy"
 import type { CryptoData } from "@/types/crypto"
 
+// Props for the StrategyConfig component
 interface StrategyConfigProps {
   cryptoData: CryptoData[]
   onStrategyChange: (strategy: Strategy) => void
   strategy: Strategy | null
 }
 
+// Main component for configuring trading strategies
 export default function StrategyConfig({ cryptoData, onStrategyChange, strategy }: StrategyConfigProps) {
+  // State for the selected strategy type
   const [selectedType, setSelectedType] = useState<StrategyType>(strategy?.config.type || 'DCA');
 
+  // Helper to update the strategy config and notify parent
   const handleConfigChange = (updates: Partial<StrategyConfig>) => {
     if (!strategy) return;
     
@@ -27,9 +31,11 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy 
     onStrategyChange({ ...strategy, config: newConfig as StrategyConfig });
   };
 
+  // Render the fields for the selected strategy type
   const renderStrategyFields = () => {
     switch (selectedType) {
       case 'DCA':
+        // Dollar-Cost Averaging fields
         return (
           <>
             <div className="space-y-2">
@@ -58,6 +64,7 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy 
         );
 
       case 'MOVING_AVERAGE':
+        // Moving Average fields
         return (
           <>
             <div className="space-y-2">
@@ -97,6 +104,7 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy 
         );
 
       case 'GRID':
+        // Grid Trading fields
         return (
           <>
             <div className="space-y-2">
@@ -158,6 +166,7 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy 
         <CardDescription>Configure your automated trading strategy</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Enable/disable the strategy */}
         <div className="flex items-center justify-between">
           <Label htmlFor="strategy-enabled">Enable Strategy</Label>
           <Switch
@@ -167,6 +176,7 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy 
           />
         </div>
 
+        {/* Select the strategy type */}
         <div className="space-y-2">
           <Label htmlFor="strategy-type">Strategy Type</Label>
           <Select
@@ -197,6 +207,7 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy 
           </Select>
         </div>
 
+        {/* Select the cryptocurrency for the strategy */}
         <div className="space-y-2">
           <Label htmlFor="strategy-symbol">Cryptocurrency</Label>
           <Select
@@ -207,6 +218,7 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy 
               <SelectValue placeholder="Select a cryptocurrency" />
             </SelectTrigger>
             <SelectContent>
+              {/* List all available cryptocurrencies */}
               {cryptoData.map((crypto) => (
                 <SelectItem key={crypto.id} value={crypto.id}>
                   {crypto.name} ({crypto.symbol})
@@ -216,6 +228,7 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy 
           </Select>
         </div>
 
+        {/* Render the fields for the selected strategy type */}
         {renderStrategyFields()}
       </CardContent>
     </Card>

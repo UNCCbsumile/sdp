@@ -36,6 +36,9 @@ export async function GET() {
       throw new Error(`CoinGecko API error: ${response.status}`)
     }
 
+    // Log success
+    console.log("Successful API fetch in /api/crypto/route.ts")
+
     const data = await response.json()
 
     // Update cache
