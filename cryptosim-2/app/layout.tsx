@@ -22,6 +22,7 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+<<<<<<< HEAD
     return (
         <html lang="en" suppressHydrationWarning>
             <head />
@@ -40,3 +41,19 @@ export default function RootLayout({
         </html>
     );
 }
+=======
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <UserProvider>
+          {children}
+        </UserProvider>
+      </body>
+    </html>
+  );
+}
+
+
+
+import './globals.css'
+>>>>>>> main
