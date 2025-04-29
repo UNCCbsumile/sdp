@@ -2,8 +2,31 @@
   {
     "symbol": "USD",
     "name": "US Dollar",
-    "amount": 10000,
+    "amount": 4551.405523558815,
     "averagePrice": 1,
-    "transactions": []
+    "transactions": [
+      {
+        "type": "buy",
+        "symbol": "ETH",
+        "amount": 3,
+        "price": 1816.1981588137285,
+        "timestamp": "2025-04-29T13:48:03.638Z"
+      }
+    ]
+  },
+  {
+    "symbol": "ETH",
+    "name": "ETH",
+    "amount": 3,
+    "averagePrice": 1816.1981588137285,
+    "transactions": [
+      {
+        "type": "buy",
+        "symbol": "ETH",
+        "amount": 3,
+        "price": 1816.1981588137285,
+        "timestamp": "2025-04-29T13:48:03.638Z"
+      }
+    ]
   }
 ]

@@ -8,6 +8,7 @@ import TradingView from "@/components/trading-view"
 import Portfolio from "@/components/portfolio"
 import { usePortfolio } from "@/hooks/use-portfolio"
 import { useCryptoData } from "@/hooks/use-crypto-data"
+import { Leaderboard } from "@/components/leaderboard"
 
 // The main Dashboard component for the app
 export default function Dashboard() {
@@ -27,10 +28,11 @@ export default function Dashboard() {
       <div className="container mx-auto px-4 py-6 flex-1">
         {/* Tab navigation for switching between views */}
         <Tabs defaultValue="market" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="market">Market Overview</TabsTrigger>
             <TabsTrigger value="trading">Trading</TabsTrigger>
             <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+            <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
           </TabsList>
 
           {/* Market Overview Tab */}
@@ -62,6 +64,11 @@ export default function Dashboard() {
               executeOrder={executeOrder}
               resetPortfolio={resetPortfolio}
             />
+          </TabsContent>
+
+          {/* Leaderboard Tab */}
+          <TabsContent value="leaderboard" className="space-y-4">
+            <Leaderboard />
           </TabsContent>
         </Tabs>
       </div>

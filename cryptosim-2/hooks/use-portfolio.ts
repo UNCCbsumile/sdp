@@ -24,6 +24,7 @@ export function usePortfolio(cryptoData: CryptoData[]) {
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>(INITIAL_PORTFOLIO);
   const portfolioRef = useRef<PortfolioItem[]>(INITIAL_PORTFOLIO);
   const lastTransactionRef = useRef<number>(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Keep portfolioRef in sync with portfolio state
   useEffect(() => {
@@ -47,6 +48,8 @@ export function usePortfolio(cryptoData: CryptoData[]) {
 
   // Load portfolio from API when user changes
   useEffect(() => {
+    let isMounted = true;
+
     async function loadPortfolio() {
       if (user) {
         try {
@@ -54,28 +57,42 @@ export function usePortfolio(cryptoData: CryptoData[]) {
           if (!response.ok) {
             throw new Error("Failed to fetch portfolio");
           }
-          // Log success
-          console.log(`Successful API fetch: /api/portfolio?userId=${user.id}`);
-            const data = await response.json();
+          const data = await response.json();
+          
+          // Only update if component is still mounted and we got valid data
+          if (isMounted && Array.isArray(data)) {
             setPortfolio(data);
             portfolioRef.current = data;
+          }
         } catch (error) {
           console.error('Error loading portfolio:', error);
+          // On error, keep existing portfolio data instead of resetting
+        } finally {
+          setIsLoading(false);
         }
       } else {
+        // Only reset to initial if there's no user
         setPortfolio(INITIAL_PORTFOLIO);
         portfolioRef.current = INITIAL_PORTFOLIO;
+        setIsLoading(false);
       }
     }
 
     loadPortfolio();
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   // Save to API whenever portfolio changes
   useEffect(() => {
-    if (user) {
+    if (!user || isLoading) return; // Don't save if no user or still loading
+
+    const saveData = async () => {
       try {
-        fetch('/api/portfolio', {
+        const response = await fetch('/api/portfolio', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -84,16 +101,18 @@ export function usePortfolio(cryptoData: CryptoData[]) {
             userId: user.id,
             portfolio,
           }),
-        }).then(response => {
-          if (!response.ok) throw new Error("Failed to update portfolio");
-          // Log success
-          console.log("Successful API fetch: /api/portfolio");
         });
+        
+        if (!response.ok) {
+          throw new Error("Failed to update portfolio");
+        }
       } catch (error) {
         console.error('Error saving portfolio:', error);
       }
-    }
-  }, [portfolio, user]);
+    };
+
+    saveData();
+  }, [portfolio, user, isLoading]);
 
   // Calculate total portfolio value (including USD and crypto assets)
   const portfolioValue = portfolio.reduce((total, item) => {

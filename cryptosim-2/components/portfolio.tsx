@@ -18,14 +18,10 @@ interface PortfolioProps {
 
 // Main Portfolio component: shows balances, holdings, and transaction history
 export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPortfolio }: PortfolioProps) {
-  // Handle reset with page refresh
+  // Handle reset without page refresh
   const handleReset = () => {
     if (resetPortfolio) {
       resetPortfolio();
-      // Wait a brief moment for the reset to complete, then refresh the page
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
     }
   };
 

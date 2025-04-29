@@ -2,74 +2,52 @@
   {
     "symbol": "USD",
     "name": "US Dollar",
-    "amount": 787.2798071591806,
+    "amount": 7234.741518900696,
     "averagePrice": 1,
     "transactions": [
       {
         "type": "buy",
-        "symbol": "BTC",
-        "amount": 0.04,
-        "price": 94011.84311564735,
-        "timestamp": "2025-04-24T00:22:45.893Z"
-      },
-      {
-        "type": "buy",
-        "symbol": "USDT",
-        "amount": 43,
-        "price": 0.9958742722798916,
-        "timestamp": "2025-04-24T00:22:57.586Z"
-      },
-      {
-        "type": "buy",
         "symbol": "ETH",
-        "amount": 3,
-        "price": 1803.1412915022968,
-        "timestamp": "2025-04-24T00:23:08.777Z"
-      }
-    ]
-  },
-  {
-    "symbol": "BTC",
-    "name": "BTC",
-    "amount": 0.04,
-    "averagePrice": 94011.84311564735,
-    "transactions": [
+        "amount": 1,
+        "price": 1816.2953987404792,
+        "timestamp": "2025-04-29T13:45:14.189Z"
+      },
       {
         "type": "buy",
         "symbol": "BTC",
-        "amount": 0.04,
-        "price": 94011.84311564735,
-        "timestamp": "2025-04-24T00:22:45.893Z"
-      }
-    ]
-  },
-  {
-    "symbol": "USDT",
-    "name": "USDT",
-    "amount": 43,
-    "averagePrice": 0.9958742722798916,
-    "transactions": [
-      {
-        "type": "buy",
-        "symbol": "USDT",
-        "amount": 43,
-        "price": 0.9958742722798916,
-        "timestamp": "2025-04-24T00:22:57.586Z"
+        "amount": 0.01,
+        "price": 94896.3082358825,
+        "timestamp": "2025-04-29T13:45:57.706Z"
       }
     ]
   },
   {
     "symbol": "ETH",
     "name": "ETH",
-    "amount": 3,
-    "averagePrice": 1803.1412915022968,
+    "amount": 1,
+    "averagePrice": 1816.2953987404792,
     "transactions": [
       {
         "type": "buy",
         "symbol": "ETH",
-        "amount": 3,
-        "price": 1803.1412915022968,
-        "timestamp": "2025-04-24T00:23:08.777Z"
+        "amount": 1,
+        "price": 1816.2953987404792,
+        "timestamp": "2025-04-29T13:45:14.189Z"
+      }
+    ]
+  },
+  {
+    "symbol": "BTC",
+    "name": "BTC",
+    "amount": 0.01,
+    "averagePrice": 94896.3082358825,
+    "transactions": [
+      {
+        "type": "buy",
+        "symbol": "BTC",
+        "amount": 0.01,
+        "price": 94896.3082358825,
+        "timestamp": "2025-04-29T13:45:57.706Z"
       }
     ]
   }

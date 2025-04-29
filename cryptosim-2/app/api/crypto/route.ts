@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
 import axios from "axios"
-const COINMARKETCAP_API_KEY = ""
-//const COINMARKETCAP_API_KEY = "d1166654-2fa8-4d0e-86be-dd4c189093d8" 
+import fs from "fs"
+import path from "path"
+//const COINMARKETCAP_API_KEY = ""
+const COINMARKETCAP_API_KEY = "d1166654-2fa8-4d0e-86be-dd4c189093d8" 
 // In-memory cache
 let cachedData: any = null
 let cacheTime = 0
@@ -24,6 +26,28 @@ function mapCoinMarketCapToAppData(data: any) {
   }))
 }
 
+// Helper to save prices to CSV
+function savePricesToCSV(data: any[]) {
+  const csvPath = path.join(process.cwd(), "data/prices.csv")
+  
+  // Create CSV header and data
+  const headers = ["symbol", "name", "currentPrice", "timestamp"]
+  const timestamp = new Date().toISOString()
+  
+  const csvRows = [
+    headers.join(","), // Header row
+    ...data.map(coin => [
+      coin.symbol.toUpperCase(),
+      coin.name.replace(",", ""), // Remove commas from names to avoid CSV issues
+      coin.current_price,
+      timestamp
+    ].join(","))
+  ]
+
+  // Write to file
+  fs.writeFileSync(csvPath, csvRows.join("\n"))
+}
+
 export async function GET() {
   try {
     const now = Date.now()
@@ -33,42 +57,51 @@ export async function GET() {
       return NextResponse.json(cachedData)
     }
 
-    // Fetch new data from CoinMarketCap
+    // If no API key, use mock data
+    if (!COINMARKETCAP_API_KEY) {
+      const mockData = [
+        {
+          id: "bitcoin",
+          symbol: "BTC",
+          name: "Bitcoin",
+          currentPrice: 65432.1,
+        },
+        {
+          id: "ethereum",
+          symbol: "ETH",
+          name: "Ethereum",
+          currentPrice: 3456.78,
+        },
+        // ... other mock data ...
+      ]
+      
+      // Save mock prices to CSV
+      savePricesToCSV(mockData)
+      return NextResponse.json(mockData)
+    }
+
+    // Fetch real data from CoinMarketCap
     const response = await axios.get(
       "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=10&convert=USD",
       {
         headers: {
-          "X-CMC_PRO_API_KEY": COINMARKETCAP_API_KEY!,
+          "X-CMC_PRO_API_KEY": COINMARKETCAP_API_KEY,
           "Accept": "application/json",
         },
       }
     )
 
-    // Log success
-    console.log("Successful API fetch from CoinMarketCap")
-
-    // Map CoinMarketCap data to your app's structure
     const mappedData = mapCoinMarketCapToAppData(response.data)
-
-    // Update cache
+    
+    // Save real prices to CSV
+    savePricesToCSV(mappedData)
+    
     cachedData = mappedData
     cacheTime = now
 
-    // Set cache headers for 5 minutes
-    return NextResponse.json(mappedData, {
-      headers: {
-        "Cache-Control": "s-maxage=300, stale-while-revalidate",
-      },
-    })
+    return NextResponse.json(mappedData)
   } catch (error) {
     console.error("Error fetching data from CoinMarketCap:", error)
-
-    // If we have cached data, return it even if it's expired
-    if (cachedData) {
-      console.log("Returning stale cached data due to API error")
-      return NextResponse.json(cachedData)
-    }
-
     return NextResponse.json(
       { error: "Failed to fetch cryptocurrency data" },
       { status: 500 }
