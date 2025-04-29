@@ -25,151 +25,47 @@ interface ChartData {
 
 // Main PriceChart component: displays a line chart for a crypto asset
 export default function PriceChart({ symbol, currentPrice, sparklineData = [] }: PriceChartProps) {
-  // State for selected time range
   const [timeRange, setTimeRange] = useState<TimeRange>("1D")
-  // State for chart data points
   const [chartData, setChartData] = useState<ChartData[]>([])
-  // State for loading indicator
   const [isLoading, setIsLoading] = useState(true)
-  // Refs to track previous symbol and price for updates
-  const prevSymbolRef = useRef<string>("")
-  const prevPriceRef = useRef<number>(0)
-  const chartDataRef = useRef<ChartData[]>([])
+  const [error, setError] = useState<string | null>(null)
 
-  // Effect: Initialize chart data when symbol or time range changes
+  // Effect to fetch data when symbol or timeRange changes
   useEffect(() => {
     if (!symbol) return
 
-    // Reset chart if the symbol changes
-    if (prevSymbolRef.current !== symbol) {
-      setChartData([])
-      chartDataRef.current = []
+    const fetchHistoricalData = async () => {
       setIsLoading(true)
-      prevSymbolRef.current = symbol
-      prevPriceRef.current = currentPrice
-
-      // Generate initial historical data for the chart
-      generateHistoricalData()
-    }
-  }, [symbol, currentPrice, timeRange, sparklineData])
-
-  // Effect: Update chart with real-time price changes
-  useEffect(() => {
-    if (!symbol || chartDataRef.current.length === 0) return
-
-    // Only update if price has changed
-    if (currentPrice !== prevPriceRef.current) {
-      prevPriceRef.current = currentPrice
-
-      // For 1D view, add a new price point
-      if (timeRange === "1D") {
-        const now = Date.now()
-
-        // Add new data point to the end
-        const newData = [...chartDataRef.current, { timestamp: now, price: currentPrice }]
-
-        // Keep only the last 24 points for 1D view
-        const dataToKeep = newData.slice(-24)
-
-        chartDataRef.current = dataToKeep
-        setChartData(dataToKeep)
-      } else {
-        // For other views, just update the last price
-        const newData = [...chartDataRef.current]
-        if (newData.length > 0) {
-          newData[newData.length - 1].price = currentPrice
-          chartDataRef.current = newData
-          setChartData(newData)
+      setError(null)
+      try {
+        // Include timeRange in the request
+        const response = await fetch(
+          `/api/crypto/historical/${symbol}?timeRange=${timeRange}&t=${Date.now()}`
+        )
+        if (!response.ok) {
+          throw new Error('Failed to fetch historical data')
         }
+        const data = await response.json()
+        if (data.error) {
+          throw new Error(data.error)
+        }
+        setChartData(data)
+      } catch (err) {
+        console.error('Error fetching historical data:', err)
+        setError('No historical data available for this currency')
+        setChartData([])
+      } finally {
+        setIsLoading(false)
       }
     }
-  }, [currentPrice, symbol, timeRange])
 
-  // Function: Generate historical data for the chart
-  const generateHistoricalData = () => {
+    fetchHistoricalData()
+  }, [symbol, timeRange]) // Include timeRange in dependencies
+
+  // Handle timeRange change
+  const handleTimeRangeChange = (newRange: TimeRange) => {
+    setTimeRange(newRange)
     setIsLoading(true)
-
-    const now = Date.now()
-    let data: ChartData[] = []
-
-    // If sparkline data is available, use it
-    if (sparklineData && sparklineData.length > 0) {
-      // CoinGecko sparkline data is for 7 days with 168 data points (hourly)
-      const hourMs = 60 * 60 * 1000
-
-      // Map sparkline data to chart data with timestamps
-      data = sparklineData.map((price, index) => {
-        // Calculate timestamp (now - (168 - index) hours)
-        const timestamp = now - (sparklineData.length - 1 - index) * hourMs
-        return { timestamp, price }
-      })
-
-      // Ensure the last point has the current price
-      if (data.length > 0) {
-        data[data.length - 1].price = currentPrice
-      }
-    } else {
-      // If no sparkline data, generate mock data based on time range
-      // Set time range parameters
-      let dataPoints = 0
-      let timeStep = 0
-      let volatility = 0
-      let startTime = now
-
-      switch (timeRange) {
-        case "1D":
-          dataPoints = 24 // 24 points for hourly data
-          timeStep = 60 * 60 * 1000 // 1 hour
-          startTime = now - (24 * 60 * 60 * 1000) // 24 hours ago
-          volatility = 0.005
-          break
-        case "1W":
-          dataPoints = 7 * 24 // 168 points for hourly data over a week
-          timeStep = 60 * 60 * 1000 // 1 hour
-          startTime = now - (7 * 24 * 60 * 60 * 1000) // 7 days ago
-          volatility = 0.02
-          break
-        case "1M":
-          dataPoints = 30 // 30 points for daily data
-          timeStep = 24 * 60 * 60 * 1000 // 1 day
-          startTime = now - (30 * 24 * 60 * 60 * 1000) // 30 days ago
-          volatility = 0.05
-          break
-        case "1Y":
-          dataPoints = 365 // 365 points for daily data
-          timeStep = 24 * 60 * 60 * 1000 // 1 day
-          startTime = now - (365 * 24 * 60 * 60 * 1000) // 365 days ago
-          volatility = 0.2
-          break
-      }
-
-      // Generate price data with some randomness
-      let price = currentPrice
-      
-      // Add current price as the last point
-      data.push({
-        timestamp: now,
-        price: currentPrice,
-      })
-
-      // Generate historical points working backwards
-      for (let i = 1; i <= dataPoints; i++) {
-        const timestamp = now - (i * timeStep)
-        
-        // Add some random price movement (more realistic going backwards)
-        const change = price * (Math.random() * volatility * 2 - volatility)
-        price = Math.max(0.01, price + change)
-
-        data.unshift({
-          timestamp,
-          price,
-        })
-      }
-    }
-
-    chartDataRef.current = data
-    setChartData(data)
-    setIsLoading(false)
   }
 
   // Function to format the X axis labels based on the selected time range
@@ -228,12 +124,9 @@ export default function PriceChart({ symbol, currentPrice, sparklineData = [] }:
 
   return (
     <div className="space-y-4">
-      {/* Header with current price and time range selector */}
       <div className="flex justify-between items-center">
         <div className="text-2xl font-bold">{formatCurrency(currentPrice)}</div>
-
-        {/* Dropdown to select time range */}
-        <Select value={timeRange} onValueChange={(value) => setTimeRange(value as TimeRange)}>
+        <Select value={timeRange} onValueChange={handleTimeRangeChange}>
           <SelectTrigger className="w-[100px]">
             <SelectValue placeholder="Time Range" />
           </SelectTrigger>
@@ -246,9 +139,12 @@ export default function PriceChart({ symbol, currentPrice, sparklineData = [] }:
         </Select>
       </div>
 
-      {/* Show loading skeleton or the chart */}
       {isLoading ? (
         <Skeleton className="h-[400px] w-full" />
+      ) : error ? (
+        <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+          {error}
+        </div>
       ) : (
         <div className="h-[400px] w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -263,7 +159,15 @@ export default function PriceChart({ symbol, currentPrice, sparklineData = [] }:
               />
               <YAxis domain={["auto", "auto"]} tickFormatter={(value) => formatCurrency(value, true)} />
               <Tooltip content={<CustomTooltip />} />
-              <Line type="monotone" dataKey="price" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 6 }} />
+              <Line 
+                type="linear"
+                dataKey="price" 
+                stroke="#3b82f6" 
+                strokeWidth={1.5}
+                dot={false}
+                activeDot={{ r: 4 }}
+                connectNulls={true}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>

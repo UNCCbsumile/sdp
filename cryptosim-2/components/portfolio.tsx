@@ -192,7 +192,12 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPo
                     {/* Show asset symbol */}
                     <TableCell>{transaction.symbol}</TableCell>
                     {/* Show amount, price, and total value */}
-                    <TableCell className="text-right">{transaction.amount.toFixed(8)}</TableCell>
+                    <TableCell className="text-right">
+                      {typeof transaction.amount === 'number' 
+                        ? transaction.amount.toFixed(8) 
+                        : '0.00000000'
+                      }
+                    </TableCell>
                     <TableCell className="text-right">{formatCurrency(transaction.price)}</TableCell>
                     <TableCell className="text-right">
                       {formatCurrency(transaction.amount * transaction.price)}
