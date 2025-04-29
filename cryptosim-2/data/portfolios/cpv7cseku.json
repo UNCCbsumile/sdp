@@ -2,7 +2,7 @@
   {
     "symbol": "USD",
     "name": "US Dollar",
-    "amount": 9890,
+    "amount": 9790,
     "averagePrice": 1,
     "transactions": [
       {
@@ -18,6 +18,13 @@
         "amount": 0.00010674901521364686,
         "price": 93677.67918032834,
         "timestamp": "2025-04-28T22:37:13.064Z"
+      },
+      {
+        "type": "buy",
+        "symbol": "BTC",
+        "amount": 0.0010493631895980382,
+        "price": 95295.89087101989,
+        "timestamp": "2025-04-29T20:39:43.479Z"
       }
     ]
   },
@@ -39,8 +46,8 @@
   {
     "symbol": "BTC",
     "name": "BTC",
-    "amount": 0.00010674901521364686,
-    "averagePrice": 93677.67918032834,
+    "amount": 0.0011561122048116851,
+    "averagePrice": 95146.47414168376,
     "transactions": [
       {
         "type": "buy",
@@ -48,6 +55,13 @@
         "amount": 0.00010674901521364686,
         "price": 93677.67918032834,
         "timestamp": "2025-04-28T22:37:13.064Z"
+      },
+      {
+        "type": "buy",
+        "symbol": "BTC",
+        "amount": 0.0010493631895980382,
+        "price": 95295.89087101989,
+        "timestamp": "2025-04-29T20:39:43.479Z"
       }
     ]
   }

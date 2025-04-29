@@ -24,9 +24,6 @@ export interface MovingAverageConfig extends BaseStrategyConfig {
   shortPeriod: number;
   longPeriod: number;
   amount: number;
-  minPriceMovement?: number;    // Minimum price movement threshold (default: 0.02 or 2%)
-  volatilityThreshold?: number; // Maximum allowed volatility (default: 0.05 or 5%)
-  requireVolumeConfirmation?: boolean; // Whether to require volume confirmation
 }
 
 export interface GridTradingConfig extends BaseStrategyConfig {
