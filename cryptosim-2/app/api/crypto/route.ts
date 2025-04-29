@@ -16,6 +16,7 @@ function mapCoinMarketCapToAppData(data: any) {
     id: coin.id.toString(),
     symbol: coin.symbol.toLowerCase(),
     name: coin.name,
+    // Use CoinMarketCap's image URL format
     image: `https://s2.coinmarketcap.com/static/img/coins/64x64/${coin.id}.png`,
     current_price: coin.quote.USD.price,
     market_cap: coin.quote.USD.market_cap,

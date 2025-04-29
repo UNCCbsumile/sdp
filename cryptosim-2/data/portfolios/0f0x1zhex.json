@@ -2,123 +2,30 @@
   {
     "symbol": "USD",
     "name": "US Dollar",
-    "amount": 5189.577785960497,
+    "amount": 7145.679224954147,
     "averagePrice": 1,
     "transactions": [
       {
         "type": "buy",
         "symbol": "BTC",
-        "amount": 0.05,
-        "price": 94016,
-        "timestamp": "2025-04-27T15:02:08.346Z"
-      },
-      {
-        "type": "buy",
-        "symbol": "DOGE",
-        "amount": 10000,
-        "price": 0.181656,
-        "timestamp": "2025-04-27T15:02:35.761Z"
-      },
-      {
-        "type": "sell",
-        "symbol": "BTC",
-        "amount": 0.05,
-        "price": 93767.2902628317,
-        "timestamp": "2025-04-27T15:03:43.521Z"
-      },
-      {
-        "type": "sell",
-        "symbol": "DOGE",
-        "amount": 10000,
-        "price": 0.181225966328256,
-        "timestamp": "2025-04-27T15:03:45.004Z"
-      },
-      {
-        "type": "buy",
-        "symbol": "BTC",
-        "amount": 0.05,
-        "price": 93627.02611688258,
-        "timestamp": "2025-04-27T15:22:05.702Z"
-      },
-      {
-        "type": "sell",
-        "symbol": "BTC",
-        "amount": 0.04,
-        "price": 93688.93895547574,
-        "timestamp": "2025-04-27T15:22:36.379Z"
-      },
-      {
-        "type": "sell",
-        "symbol": "BTC",
-        "amount": 0.010000000000000002,
-        "price": 93975.98740474178,
-        "timestamp": "2025-04-27T15:23:01.992Z"
-      },
-      {
-        "type": "buy",
-        "symbol": "BTC",
-        "amount": 0.05,
-        "price": 94865.53088424055,
-        "timestamp": "2025-04-29T14:19:59.545Z"
-      },
-      {
-        "type": "buy",
-        "symbol": "ETH",
         "amount": 0.03,
-        "price": 1819.697413234132,
-        "timestamp": "2025-04-29T14:20:40.360Z"
-      },
-      {
-        "type": "buy",
-        "symbol": "DOGE",
-        "amount": 10,
-        "price": 0.1785050276915938,
-        "timestamp": "2025-04-29T14:21:12.409Z"
+        "price": 95144.02583486176,
+        "timestamp": "2025-04-29T14:40:34.152Z"
       }
     ]
   },
   {
     "symbol": "BTC",
     "name": "BTC",
-    "amount": 0.05,
-    "averagePrice": 94865.53088424055,
+    "amount": 0.03,
+    "averagePrice": 95144.02583486176,
     "transactions": [
       {
         "type": "buy",
         "symbol": "BTC",
-        "amount": 0.05,
-        "price": 94865.53088424055,
-        "timestamp": "2025-04-29T14:19:59.545Z"
-      }
-    ]
-  },
-  {
-    "symbol": "ETH",
-    "name": "ETH",
-    "amount": 0.03,
-    "averagePrice": 1819.697413234132,
-    "transactions": [
-      {
-        "type": "buy",
-        "symbol": "ETH",
         "amount": 0.03,
-        "price": 1819.697413234132,
-        "timestamp": "2025-04-29T14:20:40.360Z"
-      }
-    ]
-  },
-  {
-    "symbol": "DOGE",
-    "name": "DOGE",
-    "amount": 10,
-    "averagePrice": 0.1785050276915938,
-    "transactions": [
-      {
-        "type": "buy",
-        "symbol": "DOGE",
-        "amount": 10,
-        "price": 0.1785050276915938,
-        "timestamp": "2025-04-29T14:21:12.409Z"
+        "price": 95144.02583486176,
+        "timestamp": "2025-04-29T14:40:34.152Z"
       }
     ]
   }

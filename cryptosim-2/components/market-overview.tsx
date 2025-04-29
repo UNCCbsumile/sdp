@@ -115,7 +115,22 @@ export default function MarketOverview({
                 {/* Render each cryptocurrency as a table row */}
                 {filteredData.map((crypto) => (
                   <TableRow key={crypto.id}>
-                    <TableCell className="font-medium">{crypto.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {crypto.image && (
+                          <img
+                            src={crypto.image}
+                            alt={crypto.name}
+                            className="w-6 h-6 rounded-full"
+                            onError={(e) => {
+                              // Fallback if image fails to load
+                              e.currentTarget.src = `/placeholder.svg?text=${crypto.symbol}`
+                            }}
+                          />
+                        )}
+                        {crypto.name}
+                      </div>
+                    </TableCell>
                     <TableCell>{crypto.symbol}</TableCell>
                     <TableCell className="text-right">{formatCurrency(crypto.currentPrice)}</TableCell>
                     <TableCell
