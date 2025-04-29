@@ -91,6 +91,17 @@ function getMockCryptoData() {
       sparkline_in_7d: { price: generateMockSparkline(3400, 3) },
     },
     {
+      id: "binancecoin",
+      symbol: "bnb",
+      name: "Binance Coin",
+      image: "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png",
+      current_price: 567.89,
+      market_cap: 87654321098,
+      total_volume: 2345678901,
+      price_change_percentage_24h: -0.7,
+      sparkline_in_7d: { price: generateMockSparkline(570, 2) },
+    },
+    {
       id: "solana",
       symbol: "sol",
       name: "Solana",
