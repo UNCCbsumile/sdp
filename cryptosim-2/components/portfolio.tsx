@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import type { CryptoData } from "@/types/crypto"
 import type { PortfolioItem } from "@/types/portfolio"
 import { formatCurrency } from "@/lib/utils"
@@ -12,10 +13,22 @@ interface PortfolioProps {
   portfolio: PortfolioItem[]
   cryptoData: CryptoData[]
   executeOrder: (type: "buy" | "sell", symbol: string, amount: number, price: number) => void
+  resetPortfolio?: () => void
 }
 
 // Main Portfolio component: shows balances, holdings, and transaction history
-export default function Portfolio({ portfolio, cryptoData, executeOrder }: PortfolioProps) {
+export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPortfolio }: PortfolioProps) {
+  // Handle reset with page refresh
+  const handleReset = () => {
+    if (resetPortfolio) {
+      resetPortfolio();
+      // Wait a brief moment for the reset to complete, then refresh the page
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    }
+  };
+
   // Calculate portfolio items with current values and profit/loss
   const portfolioWithValues = portfolio.map((item) => {
     const cryptoInfo = cryptoData.find((crypto) => crypto.symbol === item.symbol)
@@ -46,9 +59,28 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder }: Portf
     <div className="space-y-4">
       {/* Card showing available USD balance */}
       <Card>
-        <CardHeader>
-          <CardTitle>Available Balance</CardTitle>
-          <CardDescription>Your available funds for trading</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div>
+            <CardTitle>Available Balance</CardTitle>
+            <CardDescription>Your available funds for trading</CardDescription>
+          </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive">Reset Simulation</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you wish to reset? All account data will be lost.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>No</AlertDialogCancel>
+                <AlertDialogAction onClick={handleReset}>Yes</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{formatCurrency(usdBalance)}</div>

@@ -56,7 +56,7 @@ export function useCryptoData() {
       } catch (err) {
         console.error("Error initializing crypto data:", err)
         if (isMounted) {
-          setError("Failed to fetch cryptocurrency data. Using simulated data instead.")
+          //setError("Failed to fetch cryptocurrency data. Using simulated data instead.")
           setUsingMockData(true)
           setupMockData()
         }

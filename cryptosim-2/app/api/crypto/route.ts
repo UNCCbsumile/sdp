@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import axios from "axios"
-const COINMARKETCAP_API_KEY = "d1166654-2fa8-4d0e-86be-dd4c189093d8"
+const COINMARKETCAP_API_KEY = ""
+//const COINMARKETCAP_API_KEY = "d1166654-2fa8-4d0e-86be-dd4c189093d8" 
 // In-memory cache
 let cachedData: any = null
 let cacheTime = 0

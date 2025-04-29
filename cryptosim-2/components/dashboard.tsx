@@ -14,7 +14,7 @@ export default function Dashboard() {
   // Fetches cryptocurrency data and related loading/error states
   const { cryptoData, isLoading, error, isLiveData, refreshData } = useCryptoData()
   // Manages the user's portfolio, including executing orders and calculating value
-  const { portfolio, executeOrder, portfolioValue } = usePortfolio(cryptoData)
+  const { portfolio, executeOrder, portfolioValue, resetPortfolio } = usePortfolio(cryptoData)
   // State to track which tab is currently active
   const [activeTab, setActiveTab] = useState("market")
 
@@ -56,7 +56,12 @@ export default function Dashboard() {
 
           {/* Portfolio Tab */}
           <TabsContent value="portfolio" className="space-y-4">
-            <Portfolio portfolio={portfolio} cryptoData={cryptoData} executeOrder={executeOrder} />
+            <Portfolio 
+              portfolio={portfolio} 
+              cryptoData={cryptoData} 
+              executeOrder={executeOrder}
+              resetPortfolio={resetPortfolio}
+            />
           </TabsContent>
         </Tabs>
       </div>
