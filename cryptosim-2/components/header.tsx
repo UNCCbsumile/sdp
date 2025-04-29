@@ -36,7 +36,7 @@ export default function Header({ portfolioValue }: HeaderProps) {
             strokeLinejoin="round"
             className="h-6 w-6 text-primary"
           >
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+          
           </svg>
           <span className="text-xl font-bold">CryptoSim</span>
         </div>
