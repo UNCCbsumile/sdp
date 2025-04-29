@@ -9,6 +9,7 @@ import Portfolio from "@/components/portfolio"
 import { usePortfolio } from "@/hooks/use-portfolio"
 import { useCryptoData } from "@/hooks/use-crypto-data"
 import { Leaderboard } from "@/components/leaderboard"
+import { useStrategies } from "@/hooks/use-strategies"
 
 // The main Dashboard component for the app
 export default function Dashboard() {
@@ -18,6 +19,7 @@ export default function Dashboard() {
   const { portfolio, executeOrder, portfolioValue, resetPortfolio } = usePortfolio(cryptoData)
   // State to track which tab is currently active
   const [activeTab, setActiveTab] = useState("market")
+  const { strategies, isLoading: strategiesLoading } = useStrategies()
 
   return (
     // Main container for the dashboard layout
@@ -63,6 +65,7 @@ export default function Dashboard() {
               cryptoData={cryptoData} 
               executeOrder={executeOrder}
               resetPortfolio={resetPortfolio}
+              strategies={strategies}
             />
           </TabsContent>
 

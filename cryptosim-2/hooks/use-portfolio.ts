@@ -247,10 +247,32 @@ export function usePortfolio(cryptoData: CryptoData[]) {
     }
   };
 
-  const resetPortfolio = () => {
+  const resetPortfolio = async () => {
     if (user) {
-      setPortfolio(INITIAL_PORTFOLIO);
-      portfolioRef.current = INITIAL_PORTFOLIO;
+      try {
+        // Reset strategies first
+        await fetch('/api/strategies/reset', {
+          method: 'POST',
+        });
+        
+        // Then reset portfolio
+        setPortfolio(INITIAL_PORTFOLIO);
+        portfolioRef.current = INITIAL_PORTFOLIO;
+        
+        // Save the reset portfolio
+        await fetch('/api/portfolio', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            portfolio: INITIAL_PORTFOLIO,
+          }),
+        });
+      } catch (error) {
+        console.error('Error resetting portfolio:', error);
+      }
     }
   };
 

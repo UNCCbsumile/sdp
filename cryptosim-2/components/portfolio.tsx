@@ -7,6 +7,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import type { CryptoData } from "@/types/crypto"
 import type { PortfolioItem } from "@/types/portfolio"
 import { formatCurrency } from "@/lib/utils"
+import { toast } from "sonner"
+import type { Strategy } from "@/types/strategy"
 
 // Props for the Portfolio component
 interface PortfolioProps {
@@ -14,14 +16,17 @@ interface PortfolioProps {
   cryptoData: CryptoData[]
   executeOrder: (type: "buy" | "sell", symbol: string, amount: number, price: number) => void
   resetPortfolio?: () => void
+  strategies: Strategy[]
 }
 
 // Main Portfolio component: shows balances, holdings, and transaction history
-export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPortfolio }: PortfolioProps) {
+export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPortfolio, strategies }: PortfolioProps) {
   // Handle reset without page refresh
-  const handleReset = () => {
+  const handleReset = async () => {
     if (resetPortfolio) {
-      resetPortfolio();
+      await resetPortfolio();
+      // Reload the page to ensure everything is reset
+      window.location.reload();
     }
   };
 
@@ -50,6 +55,28 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPo
 
   // Calculate total value of crypto holdings (excluding USD)
   const totalValue = activePortfolio.reduce((sum, item) => sum + item.currentValue, 0)
+
+  const handleDeleteStrategy = async (strategyId: string) => {
+    try {
+      const response = await fetch('/api/strategies', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: strategyId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete strategy');
+      }
+
+      // Refresh the page or update strategies list
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting strategy:', error);
+      toast.error('Failed to delete strategy');
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -136,6 +163,61 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPo
             // Message if no crypto holdings
             <div className="text-center py-8 text-muted-foreground">
               Your portfolio is empty. Start trading to see your holdings here.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Card showing active strategies */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Active Strategies</CardTitle>
+          <CardDescription>Your automated trading strategies</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {strategies?.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Strategy</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Cryptocurrency</TableHead>
+                  <TableHead>Settings</TableHead>
+                  <TableHead>Last Execution</TableHead>
+                  <TableHead></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {strategies.map((strategy) => {
+                  const crypto = cryptoData.find(c => c.id === strategy.config.symbol);
+                  return (
+                    <TableRow key={`${strategy.id}-${strategy.config.symbol}`}>
+                      <TableCell className="font-medium">{strategy.name}</TableCell>
+                      <TableCell>{strategy.config.type}</TableCell>
+                      <TableCell>{crypto ? `${crypto.name} (${crypto.symbol})` : 'Unknown'}</TableCell>
+                      <TableCell>
+                        {strategy.config.type === 'DCA' && (
+                          <>Amount: ${strategy.config.amount}, Interval: {strategy.config.interval}h</>
+                        )}
+                        {/* Add other strategy type displays as needed */}
+                      </TableCell>
+                      <TableCell>{strategy.config.lastExecuted ? new Date(strategy.config.lastExecuted).toLocaleString() : 'Never'}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteStrategy(strategy.id)}
+                        >
+                          Delete
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )})}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              No active strategies. Configure a strategy in the Trading tab.
             </div>
           )}
         </CardContent>

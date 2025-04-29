@@ -16,6 +16,7 @@ import PriceChart from "@/components/price-chart"
 import { Skeleton } from "@/components/ui/skeleton"
 import StrategyConfig from "./strategy-config"
 import { useStrategyManager } from "@/hooks/use-strategy-manager"
+import { toast } from "sonner"
 
 interface TradingViewProps {
   cryptoData: CryptoData[]
@@ -47,6 +48,30 @@ export default function TradingView({ cryptoData, isLoading, executeOrder, portf
       setSelectedCrypto(cryptoData[0].id)
     }
   }, [cryptoData, selectedCrypto])
+
+  // Load strategies on mount
+  useEffect(() => {
+    const loadStrategies = async () => {
+      try {
+        const response = await fetch('/api/strategies');
+        if (!response.ok) {
+          throw new Error('Failed to load strategies');
+        }
+        const strategies = await response.json();
+        // Set the first strategy as active if any exist
+        if (strategies.length > 0) {
+          setStrategy(strategies[0]);
+        }
+      } catch (error) {
+        console.error('Error loading strategies:', error);
+        toast.error('Failed to load strategies');
+      }
+    };
+
+    if (mounted) {
+      loadStrategies();
+    }
+  }, [mounted]);
 
   const selectedCryptoData = cryptoData.find((crypto) => crypto.id === selectedCrypto)
   const portfolioItem = portfolio.find((item) => selectedCryptoData && item.symbol === selectedCryptoData.symbol)
@@ -81,7 +106,7 @@ export default function TradingView({ cryptoData, isLoading, executeOrder, portf
     }, 2000) // 2 second cooldown
   }
 
-  const handleStrategyChange = (updatedStrategy: Strategy) => {
+  const handleStrategyChange = (updatedStrategy: Strategy | null) => {
     setStrategy(updatedStrategy)
   }
 
