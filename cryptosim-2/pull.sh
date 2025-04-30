@@ -1,7 +1,9 @@
 #!/bin/bash
 
 echo "Pulling latest changes from origin..."
-git pull origin master
+# Get the current branch name
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+git pull origin $current_branch
 
 if [ $? -eq 0 ]; then
     echo "Pull successful!"
