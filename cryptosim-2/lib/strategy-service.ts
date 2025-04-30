@@ -22,13 +22,13 @@ async function executeDCA(strategy: Strategy) {
   const config = strategy.config;
   if (!config.enabled) return;
 
-  const now = new Date();
-  const lastExecuted = config.lastExecuted ? new Date(config.lastExecuted) : null;
-  const hoursSinceLastExecution = lastExecuted 
-    ? (now.getTime() - lastExecuted.getTime()) / (1000 * 60 * 60)
-    : Infinity;
+  const now = Date.now();
+  const lastExecuted = config.lastExecuted ? new Date(config.lastExecuted).getTime() : 0;
+  const interval = Math.max(config.interval * 60 * 60 * 1000, 30 * 1000); // Minimum 30-second interval for testing
+  const timeSinceLastExec = now - lastExecuted;
 
-  if (hoursSinceLastExecution >= config.interval) {
+  // Only execute if enough time has passed
+  if (timeSinceLastExec >= interval) {
     const portfolio = await readPortfolio('default');
     const cryptoData = await fetchInitialCryptoData();
     const asset = cryptoData.find(c => c.symbol === config.symbol);
@@ -36,6 +36,17 @@ async function executeDCA(strategy: Strategy) {
     if (asset) {
       const amount = config.amount;
       const quantity = amount / asset.currentPrice;
+
+      console.log('Executing DCA trade:', {
+        symbol: config.symbol,
+        amount,
+        quantity,
+        currentPrice: asset.currentPrice,
+        lastExecuted: config.lastExecuted,
+        interval: interval / (60 * 1000) + ' minutes',
+        timeSinceLastExec: timeSinceLastExec / (60 * 1000) + ' minutes',
+        nextExecution: new Date(now + interval).toISOString()
+      });
 
       // Update portfolio
       const updatedPortfolio = {
@@ -58,7 +69,7 @@ async function executeDCA(strategy: Strategy) {
         ...strategy,
         config: {
           ...config,
-          lastExecuted: now.toISOString()
+          lastExecuted: new Date(now).toISOString()
         }
       };
       const index = strategies.findIndex(s => s.id === strategy.id);

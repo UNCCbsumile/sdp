@@ -78,14 +78,14 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy,
                 value={strategy?.config.type === 'DCA' ? (strategy.config as DCAConfig).interval || '' : ''}
                 onChange={(e) => handleConfigChange({ 
                   type: 'DCA',
-                  interval: e.target.value ? parseFloat(e.target.value) : 0.1 
+                  interval: e.target.value ? parseFloat(e.target.value) : 0.01 
                 })}
-                min="0.1"
-                step="0.1"
-                placeholder="Enter interval in hours (e.g. 0.5 for 30 minutes)"
+                min="0.01"
+                step="0.01"
+                placeholder="Enter interval in hours (e.g. 0.1 for 6 minutes)"
               />
               <p className="text-sm text-muted-foreground">
-                You can use decimals (e.g. 0.5 for 30 minutes, 0.25 for 15 minutes)
+                Minimum: 0.01 hours (36 seconds). Examples: 0.1 = 6 minutes, 0.05 = 3 minutes, 0.02 = ~1 minute
               </p>
             </div>
           </>
@@ -193,13 +193,12 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy,
 
     setIsSubmitting(true);
     try {
-      // Always set enabled to true when saving
+      // Set enabled to true but don't set lastExecuted (let the strategy manager handle it)
       const strategyToSave = {
         ...strategy,
         config: {
           ...strategy.config,
-          enabled: true,
-          lastExecuted: new Date().toISOString() // Set last executed time when saving
+          enabled: true
         }
       };
 
@@ -207,30 +206,11 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy,
         ? await updateStrategy(strategyToSave)
         : await addStrategy(strategyToSave);
       
-      // Execute the strategy immediately after saving
-      if (savedStrategy.config.type === 'DCA') {
-        const cryptoInfo = cryptoData.find((c) => c.id === savedStrategy.config.symbol);
-        if (cryptoInfo) {
-          const cryptoAmount = (savedStrategy.config as DCAConfig).amount / cryptoInfo.currentPrice;
-          executeOrder('buy', cryptoInfo.symbol, cryptoAmount, cryptoInfo.currentPrice);
-          
-          // Update the strategy with the execution time after the order is placed
-          const updatedStrategy = {
-            ...savedStrategy,
-            config: {
-              ...savedStrategy.config,
-              lastExecuted: new Date().toISOString()
-            }
-          };
-          await updateStrategy(updatedStrategy);
-        }
-      }
-      
       toast.success('Strategy saved successfully');
       
       // Wait a moment for the toast to show and for all updates to complete
       setTimeout(() => {
-        window.location.href = '/dashboard?tab=trading';
+        window.location.href = '/dashboard?tab=portfolio';
       }, 1500);
       
     } catch (error) {

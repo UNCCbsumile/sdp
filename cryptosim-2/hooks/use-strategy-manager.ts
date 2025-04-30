@@ -27,16 +27,14 @@ export function useStrategyManager(
   const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const checkIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const [lastExecution, setLastExecution] = useState<Record<string, string>>(getStoredExecutionTimes());
-  const [isClient, setIsClient] = useState(false);
   const lastExecutionTimeRef = useRef<Record<string, number>>({});
 
   // Initialize lastExecutionTimeRef from stored times
   useEffect(() => {
     const storedTimes = getStoredExecutionTimes();
-    Object.entries(storedTimes).forEach(([strategyId, timeStr]: [string, string]) => {
+    Object.entries(storedTimes).forEach(([strategyId, timeStr]) => {
       lastExecutionTimeRef.current[strategyId] = new Date(timeStr).getTime();
     });
-    setIsClient(true);
   }, []);
 
   // Update stored execution times when they change
@@ -60,8 +58,6 @@ export function useStrategyManager(
 
   // DCA Strategy Implementation
   const executeDCAStrategy = useCallback((config: StrategyConfig & { type: 'DCA' }, strategyId: string) => {
-    if (!isClient) return;
-    
     const { symbol, amount } = config;
     const cryptoInfo = cryptoData.find((c) => c.id === symbol);
     
@@ -85,11 +81,11 @@ export function useStrategyManager(
       return updated;
     });
     lastExecutionTimeRef.current[strategyId] = Date.now();
-  }, [isClient, cryptoData, executeOrder, lastExecution]);
+  }, [cryptoData, executeOrder, lastExecution]);
 
   // Moving Average Strategy Implementation
   const executeMAStrategy = (config: StrategyConfig & { type: 'MOVING_AVERAGE' }) => {
-    if (!isClient || !strategy) return;
+    if (!strategy) return;
     
     const { symbol, shortPeriod, longPeriod, amount } = config;
     const cryptoInfo = cryptoData.find((c) => c.id === symbol);
@@ -153,7 +149,7 @@ export function useStrategyManager(
     const now = Date.now();
     const lastExecTime = lastExecutionTimeRef.current[strategy.id] || 0;
     const interval = strategy.config.type === 'DCA'
-      ? Math.max(strategy.config.interval * 60 * 60 * 1000, 6 * 60 * 1000)
+      ? Math.max(strategy.config.interval * 60 * 60 * 1000, 30 * 1000) // Minimum 30-second interval for testing
       : 5 * 60 * 1000;
 
     const timeSinceLastExec = now - lastExecTime;
@@ -169,7 +165,7 @@ export function useStrategyManager(
   }, [strategy]);
 
   useEffect(() => {
-    if (!strategy?.config.enabled || !cryptoData.length || !isClient) {
+    if (!strategy?.config.enabled || !cryptoData.length) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = undefined;
@@ -182,22 +178,16 @@ export function useStrategyManager(
     }
 
     const executeStrategy = () => {
-      // For DCA strategies, execute immediately if it's the first time
-      if (strategy.config.type === 'DCA' && !lastExecution[strategy.id]) {
-        console.log('Executing DCA strategy for the first time:', {
-          strategyId: strategy.id,
-          currentTime: new Date().toISOString()
-        });
-        executeDCAStrategy(strategy.config, strategy.id);
-        return;
-      }
-
-      // For subsequent executions, check the interval
-      if (!shouldExecuteStrategy()) return;
+      // For DCA strategies, check if this is the first execution
+      const isFirstExecution = strategy.config.type === 'DCA' && !lastExecution[strategy.id];
+      
+      // Only execute if it's the first time or if enough time has passed
+      if (!isFirstExecution && !shouldExecuteStrategy()) return;
 
       console.log('Executing strategy:', {
         strategyId: strategy.id,
         type: strategy.config.type,
+        isFirstExecution,
         currentTime: new Date().toISOString()
       });
 
@@ -218,23 +208,32 @@ export function useStrategyManager(
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
 
-    // Execute immediately
-    executeStrategy();
+    // Calculate check interval based on strategy type
+    let checkInterval: number;
+    if (strategy.config.type === 'DCA') {
+      // For DCA, check every 10 seconds to ensure we don't miss the execution window
+      checkInterval = 10 * 1000; // 10 seconds
+    } else {
+      // For other strategies, check every 5 minutes
+      checkInterval = 5 * 60 * 1000;
+    }
+    
+    // Execute immediately only for first-time DCA strategies
+    if (strategy.config.type === 'DCA' && !lastExecution[strategy.id]) {
+      executeStrategy();
+    } else {
+      // For existing strategies, check if we need to execute now
+      executeStrategy();
+    }
 
     // Set up the interval checks
-    if (strategy.config.type === 'DCA') {
-      // Check every minute for DCA strategies
-      checkIntervalRef.current = setInterval(executeStrategy, 60 * 1000);
-    } else {
-      // Standard interval for other strategies
-      intervalRef.current = setInterval(executeStrategy, 5 * 60 * 1000);
-    }
+    intervalRef.current = setInterval(executeStrategy, checkInterval);
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
     };
-  }, [strategy, cryptoData, executeOrder, executeDCAStrategy, shouldExecuteStrategy, isClient, lastExecution]);
+  }, [strategy, cryptoData, executeOrder, executeDCAStrategy, shouldExecuteStrategy, lastExecution]);
 
   const getLastExecutionTime = useCallback((strategyId: string): string => {
     const executionTime = lastExecution[strategyId];
