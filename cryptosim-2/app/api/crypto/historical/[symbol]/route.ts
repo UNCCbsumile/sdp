@@ -16,10 +16,13 @@ const CRYPTO_IDS = {
 
 export async function GET(
   req: Request,
-  { params }: { params: { symbol: string } }
+  context: { params: { symbol: string } }
 ) {
   try {
-    const { symbol } = params
+    // Await the params object
+    const params = await Promise.resolve(context.params);
+    const { symbol } = params;
+    
     const searchParams = new URL(req.url).searchParams
     const timeRange = searchParams.get("timeRange") || "1D"
 
