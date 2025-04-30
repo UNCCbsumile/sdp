@@ -42,11 +42,21 @@ export default function Dashboard() {
       <Header portfolioValue={portfolioValue} />
 
       <div className="container mx-auto px-4 py-6 flex-1">
-        {/* Tab navigation for switching between views */}
+        {/* Trading View - Always Present */}
+        <div className="mb-8">
+          <TradingView
+            cryptoData={cryptoData}
+            isLoading={isLoading}
+            executeOrder={executeOrder}
+            portfolio={portfolio}
+            onGetLastExecutionTime={handleGetLastExecutionTime}
+          />
+        </div>
+
+        {/* Tab navigation for other views */}
         <Tabs defaultValue="market" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="market">Market Overview</TabsTrigger>
-            <TabsTrigger value="trading">Trading</TabsTrigger>
             <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
             <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
           </TabsList>
@@ -62,17 +72,6 @@ export default function Dashboard() {
             />
           </TabsContent>
 
-          {/* Trading Tab */}
-          <TabsContent value="trading" className="space-y-4">
-            <TradingView
-              cryptoData={cryptoData}
-              isLoading={isLoading}
-              executeOrder={executeOrder}
-              portfolio={portfolio}
-              onGetLastExecutionTime={handleGetLastExecutionTime}
-            />
-          </TabsContent>
-
           {/* Portfolio Tab */}
           <TabsContent value="portfolio" className="space-y-4">
             <Portfolio 
@@ -85,7 +84,6 @@ export default function Dashboard() {
             />
           </TabsContent>
 
-          {/* Leaderboard Tab */}
           <TabsContent value="leaderboard" className="space-y-4">
             <Leaderboard />
           </TabsContent>
