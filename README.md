@@ -21,6 +21,11 @@ chmod +x init.sh
 npm run dev
 ```
 
+3. Run unit testing:
+```bash
+npm test
+```
+
 The app will be available at [http://localhost:3000](http://localhost:3000)
 
 ## Prerequisites
