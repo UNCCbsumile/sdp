@@ -405,3 +405,8 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Application data and cache
+data/cache/
+data/portfolios/
+data/prices.csv
