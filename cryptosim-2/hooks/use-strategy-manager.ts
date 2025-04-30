@@ -6,17 +6,23 @@ import { CryptoData } from '@/types/crypto';
 const STORAGE_KEY = 'strategy_execution_times';
 const getStoredExecutionTimes = (): Record<string, string> => {
   if (typeof window === 'undefined') return {};
-  const stored = window.localStorage.getItem(STORAGE_KEY);
   try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : {};
   } catch (e) {
+    console.error('Error reading from storage:', e);
     return {};
   }
 };
 
 const saveExecutionTimes = (times: Record<string, string>) => {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(times));
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(times));
+  } catch (e) {
+    console.error('Error saving to storage:', e);
+    // Continue execution even if storage fails
+  }
 };
 
 export function useStrategyManager(
@@ -31,15 +37,23 @@ export function useStrategyManager(
 
   // Initialize lastExecutionTimeRef from stored times
   useEffect(() => {
-    const storedTimes = getStoredExecutionTimes();
-    Object.entries(storedTimes).forEach(([strategyId, timeStr]) => {
-      lastExecutionTimeRef.current[strategyId] = new Date(timeStr).getTime();
-    });
+    try {
+      const storedTimes = getStoredExecutionTimes();
+      Object.entries(storedTimes).forEach(([strategyId, timeStr]) => {
+        lastExecutionTimeRef.current[strategyId] = new Date(timeStr).getTime();
+      });
+    } catch (e) {
+      console.error('Error initializing execution times:', e);
+    }
   }, []);
 
   // Update stored execution times when they change
   useEffect(() => {
-    saveExecutionTimes(lastExecution);
+    try {
+      saveExecutionTimes(lastExecution);
+    } catch (e) {
+      console.error('Error saving execution times:', e);
+    }
   }, [lastExecution]);
 
   // Clear intervals when strategy is deleted
@@ -61,7 +75,7 @@ export function useStrategyManager(
     const { symbol, amount } = config;
     const cryptoInfo = cryptoData.find((c) => c.id === symbol);
     
-    if (!cryptoInfo) return;
+    if (!cryptoInfo || amount <= 0) return;
     
     console.log('Executing DCA strategy:', {
       symbol,
@@ -74,17 +88,22 @@ export function useStrategyManager(
     const cryptoAmount = amount / cryptoInfo.currentPrice;
     executeOrder('buy', cryptoInfo.symbol, cryptoAmount, cryptoInfo.currentPrice);
     
-    const newExecutionTime = new Date().toISOString();
-    setLastExecution(prev => {
-      const updated = { ...prev, [strategyId]: newExecutionTime };
-      saveExecutionTimes(updated);
-      return updated;
-    });
-    lastExecutionTimeRef.current[strategyId] = Date.now();
+    try {
+      const newExecutionTime = new Date().toISOString();
+      setLastExecution(prev => {
+        const updated = { ...prev, [strategyId]: newExecutionTime };
+        saveExecutionTimes(updated);
+        return updated;
+      });
+      lastExecutionTimeRef.current[strategyId] = Date.now();
+    } catch (error) {
+      console.error('Failed to save execution time:', error);
+      // Continue execution even if storage fails
+    }
   }, [cryptoData, executeOrder, lastExecution]);
 
   // Moving Average Strategy Implementation
-  const executeMAStrategy = (config: StrategyConfig & { type: 'MOVING_AVERAGE' }) => {
+  const executeMAStrategy = async (config: StrategyConfig & { type: 'MOVING_AVERAGE' }) => {
     if (!strategy) return;
     
     const { symbol, shortPeriod, longPeriod, amount } = config;
@@ -92,22 +111,96 @@ export function useStrategyManager(
     
     if (!cryptoInfo) return;
 
-    const shortMA = cryptoInfo.currentPrice;
-    const longMA = cryptoInfo.currentPrice * 0.99;
+    try {
+      // Fetch historical data for the longest period needed
+      const response = await fetch(`/api/crypto/historical/${cryptoInfo.symbol}?timeRange=1M`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch historical data');
+      }
+      
+      const historicalData = await response.json();
+      
+      // Calculate moving averages based on actual time periods
+      const calculateMA = (period: number) => {
+        // Convert period from days to milliseconds
+        const periodMs = period * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        
+        // Filter data points within the period
+        const relevantData = historicalData.filter((d: any) => 
+          (now - d.timestamp) <= periodMs
+        );
+        
+        if (relevantData.length === 0) {
+          console.warn(`No data points found for ${period}-day period`);
+          return cryptoInfo.currentPrice;
+        }
+        
+        // Calculate average price for the period
+        const sum = relevantData.reduce((total: number, d: any) => total + d.price, 0);
+        return sum / relevantData.length;
+      };
 
-    if (shortMA > longMA) {
-      const cryptoAmount = amount / cryptoInfo.currentPrice;
-      executeOrder('buy', cryptoInfo.symbol, cryptoAmount, cryptoInfo.currentPrice);
-    } else if (shortMA < longMA) {
-      executeOrder('sell', cryptoInfo.symbol, amount, cryptoInfo.currentPrice);
+      const shortMA = calculateMA(shortPeriod);
+      const longMA = calculateMA(longPeriod);
+
+      console.log('Moving Average Strategy:', {
+        symbol: cryptoInfo.symbol,
+        shortMA,
+        longMA,
+        currentPrice: cryptoInfo.currentPrice,
+        shortPeriod,
+        longPeriod,
+        shortMAAboveLongMA: shortMA > longMA,
+        previousShortMA: lastExecutionTimeRef.current[`${strategy.id}_shortMA`],
+        previousLongMA: lastExecutionTimeRef.current[`${strategy.id}_longMA`]
+      });
+
+      // Only execute if there's a crossover (previous state was different)
+      const previousShortMA = lastExecutionTimeRef.current[`${strategy.id}_shortMA`];
+      const previousLongMA = lastExecutionTimeRef.current[`${strategy.id}_longMA`];
+      
+      // Store current MAs for next comparison
+      lastExecutionTimeRef.current[`${strategy.id}_shortMA`] = shortMA;
+      lastExecutionTimeRef.current[`${strategy.id}_longMA`] = longMA;
+
+      // Only execute if we have previous values and there's a crossover
+      if (previousShortMA !== undefined && previousLongMA !== undefined) {
+        const wasAbove = previousShortMA > previousLongMA;
+        const isAbove = shortMA > longMA;
+        
+        if (wasAbove !== isAbove) {
+          if (isAbove) {
+            // Short MA crosses above Long MA - Buy signal
+            const cryptoAmount = amount / cryptoInfo.currentPrice;
+            executeOrder('buy', cryptoInfo.symbol, cryptoAmount, cryptoInfo.currentPrice);
+            
+            // Only update last execution time when a trade is executed
+            const newExecutionTime = new Date().toISOString();
+            setLastExecution(prev => {
+              const updated = { ...prev, [strategy.id]: newExecutionTime };
+              saveExecutionTimes(updated);
+              return updated;
+            });
+            lastExecutionTimeRef.current[strategy.id] = Date.now();
+          } else {
+            // Short MA crosses below Long MA - Sell signal
+            executeOrder('sell', cryptoInfo.symbol, amount, cryptoInfo.currentPrice);
+            
+            // Only update last execution time when a trade is executed
+            const newExecutionTime = new Date().toISOString();
+            setLastExecution(prev => {
+              const updated = { ...prev, [strategy.id]: newExecutionTime };
+              saveExecutionTimes(updated);
+              return updated;
+            });
+            lastExecutionTimeRef.current[strategy.id] = Date.now();
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error executing moving average strategy:', error);
     }
-    
-    const newExecutionTime = new Date().toISOString();
-    setLastExecution(prev => {
-      const updated = { ...prev, [strategy.id]: newExecutionTime };
-      saveExecutionTimes(updated);
-      return updated;
-    });
   };
 
   // Grid Trading Strategy Implementation

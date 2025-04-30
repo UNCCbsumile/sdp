@@ -194,11 +194,27 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPo
                   return (
                     <TableRow key={`${strategy.id}-${strategy.config.symbol}`}>
                       <TableCell className="font-medium">{strategy.name}</TableCell>
-                      <TableCell>{strategy.config.type}</TableCell>
+                      <TableCell>
+                        {(() => {
+                          switch (strategy.config.type) {
+                            case 'MOVING_AVERAGE':
+                              return 'Moving Average';
+                            case 'DCA':
+                              return 'Dollar-Cost Averaging';
+                            case 'GRID':
+                              return 'Grid Trading';
+                            default:
+                              return strategy.config.type;
+                          }
+                        })()}
+                      </TableCell>
                       <TableCell>{crypto ? `${crypto.name} (${crypto.symbol})` : 'Unknown'}</TableCell>
                       <TableCell>
                         {strategy.config.type === 'DCA' && (
                           <>Amount: ${strategy.config.amount}, Interval: {strategy.config.interval}h</>
+                        )}
+                        {strategy.config.type === 'MOVING_AVERAGE' && (
+                          <>Amount: ${strategy.config.amount}, Short: {strategy.config.shortPeriod}d, Long: {strategy.config.longPeriod}d</>
                         )}
                         {/* Add other strategy type displays as needed */}
                       </TableCell>

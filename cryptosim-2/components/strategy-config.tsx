@@ -33,7 +33,7 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy,
       // If no strategy exists, create a new one
       const newStrategy: Strategy = {
         id: Math.random().toString(36).substr(2, 9),
-        name: `${selectedType} Strategy`,
+        name: `${selectedType === 'MOVING_AVERAGE' ? 'Moving Average' : selectedType} Strategy`,
         config: {
           type: selectedType,
           enabled: false,
@@ -264,7 +264,7 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy,
                 // Create new strategy configuration based on type
                 const newStrategy: Strategy = {
                   id: strategy?.id || Math.random().toString(36).substr(2, 9),
-                  name: `${value} Strategy`,
+                  name: `${value === 'MOVING_AVERAGE' ? 'Moving Average' : value} Strategy`,
                   config: {
                     type: value,
                     enabled: strategy?.config.enabled || false,
