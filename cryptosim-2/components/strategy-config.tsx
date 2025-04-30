@@ -18,11 +18,12 @@ interface StrategyConfigProps {
   cryptoData: CryptoData[]
   onStrategyChange: (strategy: Strategy | null) => void
   strategy: Strategy | null
+  executeOrder: (type: "buy" | "sell", symbol: string, amount: number, price: number) => void
 }
 
 // Main component for configuring trading strategies
-export default function StrategyConfig({ cryptoData, onStrategyChange, strategy }: StrategyConfigProps) {
-  const { addStrategy, updateStrategy, deleteStrategy } = useStrategies()
+export default function StrategyConfig({ cryptoData, onStrategyChange, strategy, executeOrder }: StrategyConfigProps) {
+  const { addStrategy, updateStrategy, deleteStrategy, refreshStrategies } = useStrategies()
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedType, setSelectedType] = useState<StrategyType>(strategy?.config.type || 'DCA');
 
@@ -77,11 +78,15 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy 
                 value={strategy?.config.type === 'DCA' ? (strategy.config as DCAConfig).interval || '' : ''}
                 onChange={(e) => handleConfigChange({ 
                   type: 'DCA',
-                  interval: e.target.value ? parseFloat(e.target.value) : 1 
+                  interval: e.target.value ? parseFloat(e.target.value) : 0.1 
                 })}
-                min="1"
-                step="1"
+                min="0.1"
+                step="0.1"
+                placeholder="Enter interval in hours (e.g. 0.5 for 30 minutes)"
               />
+              <p className="text-sm text-muted-foreground">
+                You can use decimals (e.g. 0.5 for 30 minutes, 0.25 for 15 minutes)
+              </p>
             </div>
           </>
         );
@@ -194,17 +199,40 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy 
         config: {
           ...strategy.config,
           enabled: true,
+          lastExecuted: new Date().toISOString() // Set last executed time when saving
         }
       };
 
       const savedStrategy = strategy.id 
         ? await updateStrategy(strategyToSave)
         : await addStrategy(strategyToSave);
-      onStrategyChange(savedStrategy);
+      
+      // Execute the strategy immediately after saving
+      if (savedStrategy.config.type === 'DCA') {
+        const cryptoInfo = cryptoData.find((c) => c.id === savedStrategy.config.symbol);
+        if (cryptoInfo) {
+          const cryptoAmount = (savedStrategy.config as DCAConfig).amount / cryptoInfo.currentPrice;
+          executeOrder('buy', cryptoInfo.symbol, cryptoAmount, cryptoInfo.currentPrice);
+          
+          // Update the strategy with the execution time after the order is placed
+          const updatedStrategy = {
+            ...savedStrategy,
+            config: {
+              ...savedStrategy.config,
+              lastExecuted: new Date().toISOString()
+            }
+          };
+          await updateStrategy(updatedStrategy);
+        }
+      }
+      
       toast.success('Strategy saved successfully');
       
-      // Refresh the page to update the portfolio view
-      window.location.reload();
+      // Wait a moment for the toast to show and for all updates to complete
+      setTimeout(() => {
+        window.location.href = '/dashboard?tab=trading';
+      }, 1500);
+      
     } catch (error) {
       console.error('Error saving strategy:', error);
       toast.error('Failed to save strategy');
@@ -226,8 +254,10 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy 
       onStrategyChange(null);
       toast.success('Strategy deleted successfully');
       
-      // Refresh the page to update the portfolio view
-      window.location.reload();
+      // Wait a moment for the toast to show, then refresh and redirect to portfolio tab
+      setTimeout(() => {
+        window.location.href = '/dashboard?tab=portfolio';
+      }, 1000);
     } catch (error) {
       console.error('Error deleting strategy:', error);
       toast.error('Failed to delete strategy');

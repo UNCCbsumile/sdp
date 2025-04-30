@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Header from "@/components/header"
 import MarketOverview from "@/components/market-overview"
@@ -18,8 +18,22 @@ export default function Dashboard() {
   // Manages the user's portfolio, including executing orders and calculating value
   const { portfolio, executeOrder, portfolioValue, resetPortfolio } = usePortfolio(cryptoData)
   // State to track which tab is currently active
-  const [activeTab, setActiveTab] = useState("market")
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('tab') || 'market';
+    }
+    return 'market';
+  });
   const { strategies, isLoading: strategiesLoading } = useStrategies()
+  
+  // Memoize getLastExecutionTime to prevent unnecessary re-renders
+  const [getLastExecutionTime, setGetLastExecutionTime] = useState<((strategyId: string) => string) | undefined>(undefined)
+
+  // Memoize the callback to prevent unnecessary re-renders
+  const handleGetLastExecutionTime = useCallback((fn: (strategyId: string) => string) => {
+    setGetLastExecutionTime(() => fn);
+  }, []);
 
   return (
     // Main container for the dashboard layout
@@ -55,6 +69,7 @@ export default function Dashboard() {
               isLoading={isLoading}
               executeOrder={executeOrder}
               portfolio={portfolio}
+              onGetLastExecutionTime={handleGetLastExecutionTime}
             />
           </TabsContent>
 
@@ -66,6 +81,7 @@ export default function Dashboard() {
               executeOrder={executeOrder}
               resetPortfolio={resetPortfolio}
               strategies={strategies}
+              getLastExecutionTime={getLastExecutionTime}
             />
           </TabsContent>
 

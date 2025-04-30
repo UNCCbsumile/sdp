@@ -17,15 +17,17 @@ import { Skeleton } from "@/components/ui/skeleton"
 import StrategyConfig from "./strategy-config"
 import { useStrategyManager } from "@/hooks/use-strategy-manager"
 import { toast } from "sonner"
+import { useStrategies } from "@/hooks/use-strategies"
 
 interface TradingViewProps {
   cryptoData: CryptoData[]
   isLoading: boolean
   executeOrder: (type: "buy" | "sell", symbol: string, amount: number, price: number) => void
   portfolio: PortfolioItem[]
+  onGetLastExecutionTime?: (getLastExecutionTime: (strategyId: string) => string) => void
 }
 
-export default function TradingView({ cryptoData, isLoading, executeOrder, portfolio }: TradingViewProps) {
+export default function TradingView({ cryptoData, isLoading, executeOrder, portfolio, onGetLastExecutionTime }: TradingViewProps) {
   const [mounted, setMounted] = useState(false)
   const [selectedCrypto, setSelectedCrypto] = useState<string>("")
   const [amount, setAmount] = useState<string>("")
@@ -34,13 +36,21 @@ export default function TradingView({ cryptoData, isLoading, executeOrder, portf
   const submitTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [activeTab, setActiveTab] = useState<"manual" | "automated">("manual")
   const [strategy, setStrategy] = useState<Strategy | null>(null)
+  const { strategies } = useStrategies()
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
   // Initialize strategy manager
-  useStrategyManager(strategy, cryptoData, executeOrder)
+  const { getLastExecutionTime } = useStrategyManager(strategy, cryptoData, executeOrder)
+
+  // Pass getLastExecutionTime to parent
+  useEffect(() => {
+    if (onGetLastExecutionTime && getLastExecutionTime) {
+      onGetLastExecutionTime(getLastExecutionTime)
+    }
+  }, [getLastExecutionTime, onGetLastExecutionTime])
 
   // Set default selected crypto when data loads
   useEffect(() => {
@@ -49,29 +59,23 @@ export default function TradingView({ cryptoData, isLoading, executeOrder, portf
     }
   }, [cryptoData, selectedCrypto])
 
-  // Load strategies on mount
+  // Update active strategy when strategies change
   useEffect(() => {
-    const loadStrategies = async () => {
-      try {
-        const response = await fetch('/api/strategies');
-        if (!response.ok) {
-          throw new Error('Failed to load strategies');
+    if (strategies.length > 0) {
+      // If we don't have an active strategy, set the first one
+      if (!strategy) {
+        setStrategy(strategies[0]);
+      } else {
+        // Otherwise, update the current strategy with the latest data
+        const updatedStrategy = strategies.find(s => s.id === strategy.id);
+        if (updatedStrategy) {
+          setStrategy(updatedStrategy);
         }
-        const strategies = await response.json();
-        // Set the first strategy as active if any exist
-        if (strategies.length > 0) {
-          setStrategy(strategies[0]);
-        }
-      } catch (error) {
-        console.error('Error loading strategies:', error);
-        toast.error('Failed to load strategies');
       }
-    };
-
-    if (mounted) {
-      loadStrategies();
+    } else {
+      setStrategy(null);
     }
-  }, [mounted]);
+  }, [strategies]);
 
   const selectedCryptoData = cryptoData.find((crypto) => crypto.id === selectedCrypto)
   const portfolioItem = portfolio.find((item) => selectedCryptoData && item.symbol === selectedCryptoData.symbol)
@@ -265,6 +269,7 @@ export default function TradingView({ cryptoData, isLoading, executeOrder, portf
                 cryptoData={cryptoData}
                 strategy={strategy}
                 onStrategyChange={handleStrategyChange}
+                executeOrder={executeOrder}
               />
             </TabsContent>
           </Tabs>

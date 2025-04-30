@@ -17,10 +17,11 @@ interface PortfolioProps {
   executeOrder: (type: "buy" | "sell", symbol: string, amount: number, price: number) => void
   resetPortfolio?: () => void
   strategies: Strategy[]
+  getLastExecutionTime?: (strategyId: string) => string
 }
 
 // Main Portfolio component: shows balances, holdings, and transaction history
-export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPortfolio, strategies }: PortfolioProps) {
+export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPortfolio, strategies, getLastExecutionTime }: PortfolioProps) {
   // Handle reset without page refresh
   const handleReset = async () => {
     if (resetPortfolio) {
@@ -201,7 +202,7 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPo
                         )}
                         {/* Add other strategy type displays as needed */}
                       </TableCell>
-                      <TableCell>{strategy.config.lastExecuted ? new Date(strategy.config.lastExecuted).toLocaleString() : 'Never'}</TableCell>
+                      <TableCell>{getLastExecutionTime ? getLastExecutionTime(strategy.id) : 'Never'}</TableCell>
                       <TableCell>
                         <Button
                           variant="destructive"
