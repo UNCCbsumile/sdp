@@ -96,26 +96,28 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy,
         return (
           <>
             <div className="space-y-2">
-              <Label htmlFor="ma-short">Short Period (days)</Label>
+              <Label htmlFor="ma-short-period">Short Period</Label>
               <Input
-                id="ma-short"
+                id="ma-short-period"
                 type="number"
-                value={(strategy?.config as any)?.shortPeriod || ""}
+                value={(strategy?.config as any)?.shortPeriod || "10"}
                 onChange={(e) => handleConfigChange({ shortPeriod: parseInt(e.target.value) })}
-                min="1"
+                min="2"
                 step="1"
               />
+              <p className="text-sm text-muted-foreground">Number of periods for short-term moving average (e.g., 10)</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="ma-long">Long Period (days)</Label>
+              <Label htmlFor="ma-long-period">Long Period</Label>
               <Input
-                id="ma-long"
+                id="ma-long-period"
                 type="number"
-                value={(strategy?.config as any)?.longPeriod || ""}
+                value={(strategy?.config as any)?.longPeriod || "50"}
                 onChange={(e) => handleConfigChange({ longPeriod: parseInt(e.target.value) })}
-                min="1"
+                min="2"
                 step="1"
               />
+              <p className="text-sm text-muted-foreground">Number of periods for long-term moving average (e.g., 50)</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="ma-amount">Investment Amount (USD)</Label>
@@ -124,59 +126,121 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy,
                 type="number"
                 value={(strategy?.config as any)?.amount || ""}
                 onChange={(e) => handleConfigChange({ amount: parseFloat(e.target.value) })}
+                min="0.01"
+                step="0.01"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="stop-loss">Stop Loss (%)</Label>
+              <Input
+                id="stop-loss"
+                type="number"
+                value={(strategy?.config as any)?.stopLoss?.percentage || ""}
+                onChange={(e) => handleConfigChange({ 
+                  stopLoss: { 
+                    ...(strategy?.config as any)?.stopLoss,
+                    percentage: parseFloat(e.target.value)
+                  }
+                })}
                 min="0"
-                step="1"
+                max="100"
+                step="0.1"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="trailing-stop">Trailing Stop Loss</Label>
+              <Switch
+                id="trailing-stop"
+                checked={(strategy?.config as any)?.stopLoss?.trailing || false}
+                onCheckedChange={(checked) => handleConfigChange({ 
+                  stopLoss: { 
+                    ...(strategy?.config as any)?.stopLoss,
+                    trailing: checked
+                  }
+                })}
               />
             </div>
           </>
         );
 
-      case 'GRID':
-        // Grid Trading fields
+      case 'RSI':
+        // RSI fields
         return (
           <>
             <div className="space-y-2">
-              <Label htmlFor="grid-upper">Upper Limit (USD)</Label>
+              <Label htmlFor="rsi-period">RSI Period</Label>
               <Input
-                id="grid-upper"
+                id="rsi-period"
                 type="number"
-                value={(strategy?.config as any)?.upperLimit || ""}
-                onChange={(e) => handleConfigChange({ upperLimit: parseFloat(e.target.value) })}
-                min="0"
-                step="1"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="grid-lower">Lower Limit (USD)</Label>
-              <Input
-                id="grid-lower"
-                type="number"
-                value={(strategy?.config as any)?.lowerLimit || ""}
-                onChange={(e) => handleConfigChange({ lowerLimit: parseFloat(e.target.value) })}
-                min="0"
-                step="1"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="grid-lines">Number of Grid Lines</Label>
-              <Input
-                id="grid-lines"
-                type="number"
-                value={(strategy?.config as any)?.gridLines || ""}
-                onChange={(e) => handleConfigChange({ gridLines: parseInt(e.target.value) })}
+                value={(strategy?.config as any)?.period || "14"}
+                onChange={(e) => handleConfigChange({ period: parseInt(e.target.value) })}
                 min="2"
                 step="1"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="grid-investment">Investment per Grid (USD)</Label>
+              <Label htmlFor="rsi-overbought">Overbought Level</Label>
               <Input
-                id="grid-investment"
+                id="rsi-overbought"
                 type="number"
-                value={(strategy?.config as any)?.investmentPerGrid || ""}
-                onChange={(e) => handleConfigChange({ investmentPerGrid: parseFloat(e.target.value) })}
-                min="0"
+                value={(strategy?.config as any)?.overbought || "70"}
+                onChange={(e) => handleConfigChange({ overbought: parseInt(e.target.value) })}
+                min="50"
+                max="100"
                 step="1"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="rsi-oversold">Oversold Level</Label>
+              <Input
+                id="rsi-oversold"
+                type="number"
+                value={(strategy?.config as any)?.oversold || "30"}
+                onChange={(e) => handleConfigChange({ oversold: parseInt(e.target.value) })}
+                min="0"
+                max="50"
+                step="1"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="rsi-amount">Investment Amount (USD)</Label>
+              <Input
+                id="rsi-amount"
+                type="number"
+                value={(strategy?.config as any)?.amount || ""}
+                onChange={(e) => handleConfigChange({ amount: parseFloat(e.target.value) })}
+                min="0.01"
+                step="0.01"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="stop-loss">Stop Loss (%)</Label>
+              <Input
+                id="stop-loss"
+                type="number"
+                value={(strategy?.config as any)?.stopLoss?.percentage || ""}
+                onChange={(e) => handleConfigChange({ 
+                  stopLoss: { 
+                    ...(strategy?.config as any)?.stopLoss,
+                    percentage: parseFloat(e.target.value)
+                  }
+                })}
+                min="0"
+                max="100"
+                step="0.1"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="trailing-stop">Trailing Stop Loss</Label>
+              <Switch
+                id="trailing-stop"
+                checked={(strategy?.config as any)?.stopLoss?.trailing || false}
+                onCheckedChange={(checked) => handleConfigChange({ 
+                  stopLoss: { 
+                    ...(strategy?.config as any)?.stopLoss,
+                    trailing: checked
+                  }
+                })}
               />
             </div>
           </>
@@ -275,15 +339,15 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy,
                       interval: 24, // Default to daily (24 hours)
                     }),
                     ...(value === 'MOVING_AVERAGE' && {
-                      shortPeriod: 7,
-                      longPeriod: 30,
+                      shortPeriod: 10,
+                      longPeriod: 50,
                       amount: 0,
                     }),
-                    ...(value === 'GRID' && {
-                      upperLimit: 0,
-                      lowerLimit: 0,
-                      gridLines: 5,
-                      investmentPerGrid: 0,
+                    ...(value === 'RSI' && {
+                      period: 14,
+                      overbought: 70,
+                      oversold: 30,
+                      amount: 0,
                     }),
                   } as StrategyConfig,
                 };
@@ -296,7 +360,7 @@ export default function StrategyConfig({ cryptoData, onStrategyChange, strategy,
               <SelectContent>
                 <SelectItem value="DCA">Dollar-Cost Averaging</SelectItem>
                 <SelectItem value="MOVING_AVERAGE">Moving Average</SelectItem>
-                <SelectItem value="GRID">Grid Trading</SelectItem>
+                <SelectItem value="RSI">Relative Strength Index</SelectItem>
               </SelectContent>
             </Select>
           </div>

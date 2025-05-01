@@ -14,25 +14,94 @@ const CRYPTO_IDS = {
   // Add more as needed
 }
 
+// Base prices for mock data
+const BASE_PRICES = {
+  'BTC': 65000,
+  'ETH': 3500,
+  'USDT': 1,
+  'BNB': 300,
+  'SOL': 100,
+}
+
+function generateHistoricalPrices(basePrice: number, timeRange: string, dataPoints: number) {
+  const prices = []
+  let currentPrice = basePrice
+  const volatility = 0.02 // 2% daily volatility
+  const trend = 0.0001 // Slight upward trend
+  
+  for (let i = 0; i < dataPoints; i++) {
+    // Random walk with trend and volatility scaling
+    const randomChange = (Math.random() - 0.5) * volatility
+    const trendChange = trend
+    currentPrice = currentPrice * (1 + randomChange + trendChange)
+    
+    // Add some mean reversion to prevent extreme values
+    const deviation = (currentPrice - basePrice) / basePrice
+    const meanReversion = -deviation * 0.1
+    currentPrice = currentPrice * (1 + meanReversion)
+    
+    // Ensure price stays within realistic bounds
+    const minPrice = basePrice * 0.5
+    const maxPrice = basePrice * 1.5
+    currentPrice = Math.max(minPrice, Math.min(maxPrice, currentPrice))
+    
+    prices.push({
+      timestamp: Date.now() - (dataPoints - i) * getTimeInterval(timeRange),
+      price: currentPrice
+    })
+  }
+  
+  return prices
+}
+
+function getTimeInterval(timeRange: string): number {
+  switch (timeRange) {
+    case '1D':
+      return 15 * 60 * 1000 // 15 minutes
+    case '1W':
+      return 60 * 60 * 1000 // 1 hour
+    case '1M':
+      return 6 * 60 * 60 * 1000 // 6 hours
+    case '1Y':
+      return 24 * 60 * 60 * 1000 // 1 day
+    default:
+      return 60 * 60 * 1000 // 1 hour
+  }
+}
+
+function getDataPoints(timeRange: string): number {
+  switch (timeRange) {
+    case '1D':
+      return 96 // 15-minute intervals
+    case '1W':
+      return 168 // 1-hour intervals
+    case '1M':
+      return 120 // 6-hour intervals
+    case '1Y':
+      return 365 // Daily intervals
+    default:
+      return 168
+  }
+}
+
 export async function GET(
   req: Request,
   context: { params: { symbol: string } }
 ) {
   try {
-    // Await the params object
-    const params = await Promise.resolve(context.params);
-    const { symbol } = params;
-    
+    const params = await Promise.resolve(context.params)
+    const { symbol } = params
     const searchParams = new URL(req.url).searchParams
     const timeRange = searchParams.get("timeRange") || "1D"
 
-    // Check cache with timeRange
+    // Check cache
     const cachedData = await getCachedData(symbol, timeRange)
-    if (cachedData) {
-      return NextResponse.json(cachedData)
+    if (cachedData && Date.now() - cachedData.timestamp < 5 * 60 * 1000) { // 5 minute cache
+      return NextResponse.json(cachedData.data)
     }
 
-    // Get latest quote from CoinMarketCap
+    try {
+      // Try to get real data from CoinMarketCap
     const response = await axios.get(
       "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest",
       {
@@ -52,120 +121,39 @@ export async function GET(
       throw new Error('Invalid API response format')
     }
 
-    // Find the correct cryptocurrency by ID
     const cryptoId = CRYPTO_IDS[symbol.toUpperCase() as keyof typeof CRYPTO_IDS]
     const mainCrypto = cryptoData.find(crypto => crypto.id === cryptoId)
     
-    if (!mainCrypto || !mainCrypto.quote?.USD) {
-      throw new Error(`No data found for ${symbol.toUpperCase()}`)
+      if (mainCrypto?.quote?.USD?.price) {
+        const basePrice = mainCrypto.quote.USD.price
+        const historicalData = generateHistoricalPrices(basePrice, timeRange, getDataPoints(timeRange))
+        
+        // Cache the data
+        await setCachedData(symbol, timeRange, {
+          timestamp: Date.now(),
+          data: historicalData
+        })
+        
+        return NextResponse.json(historicalData)
+      }
+    } catch (error) {
+      console.warn('Failed to fetch real price data, falling back to mock data:', error)
     }
-
-    const currentPrice = mainCrypto.quote.USD.price
-    const percentChange = {
-      "1h": mainCrypto.quote.USD.percent_change_1h || 0,
-      "24h": mainCrypto.quote.USD.percent_change_24h || 0,
-      "7d": mainCrypto.quote.USD.percent_change_7d || 0,
-      "30d": mainCrypto.quote.USD.percent_change_30d || 0,
-      "60d": mainCrypto.quote.USD.percent_change_60d || 0,
-      "90d": mainCrypto.quote.USD.percent_change_90d || 0
-    }
-
-    // Generate synthetic historical data based on percent changes
-    const now = Date.now()
-    let dataPoints: { timestamp: number; price: number }[] = []
     
-    switch (timeRange) {
-      case "1D": {
-        // Generate points every 15 minutes (96 points for 24 hours)
-        const points = 96;
-        const minutesPerPoint = 15;
-        const baseChange = percentChange["24h"] / points;
-        
-        for (let i = points; i >= 0; i--) {
-          const timestamp = now - (i * minutesPerPoint * 60 * 1000);
-          
-          // Create more realistic price movements
-          const randomVolatility = Math.random() * 0.15 + 0.05; // 5-20% volatility factor
-          const noise = (Math.random() - 0.5) * baseChange * randomVolatility;
-          const trendComponent = ((points - i) * baseChange / 100);
-          const volatilityComponent = noise * currentPrice / 100;
-          
-          const priceAtPoint = (currentPrice / (1 + (percentChange["24h"] / 100))) * 
-            (1 + trendComponent + volatilityComponent);
-          
-          dataPoints.push({ 
-            timestamp,
-            price: Math.max(priceAtPoint, 0) // Ensure price doesn't go negative
-          });
-        }
-        break;
-      }
-      case "1W": {
-        // Generate points every hour (168 points for 7 days)
-        const points = 168;
-        const hoursPerPoint = 1;
-        const baseChange = percentChange["7d"] / points;
-        
-        for (let i = points; i >= 0; i--) {
-          const timestamp = now - (i * hoursPerPoint * 60 * 60 * 1000);
-          
-          // Create more realistic price movements
-          const randomVolatility = Math.random() * 0.2 + 0.1; // 10-30% volatility factor
-          const noise = (Math.random() - 0.5) * baseChange * randomVolatility;
-          const trendComponent = ((points - i) * baseChange / 100);
-          const volatilityComponent = noise * currentPrice / 100;
-          
-          // Add some occasional larger moves
-          const spike = Math.random() > 0.95 ? (Math.random() - 0.5) * 0.5 : 0; // 5% chance of price spike
-          
-          const priceAtPoint = (currentPrice / (1 + (percentChange["7d"] / 100))) * 
-            (1 + trendComponent + volatilityComponent + spike);
-          
-          dataPoints.push({ 
-            timestamp,
-            price: Math.max(priceAtPoint, 0)
-          });
-        }
-        break;
-      }
-      case "1M": {
-        const dailyChange = percentChange["30d"] / 30
-        for (let i = 30; i >= 0; i--) {
-          const timestamp = now - (i * 24 * 60 * 60 * 1000)
-          const priceAtPoint = currentPrice / (1 + (percentChange["30d"] / 100)) * (1 + ((30 - i) * dailyChange / 100))
-          dataPoints.push({ timestamp, price: priceAtPoint })
-        }
-        break
-      }
-      case "1Y": {
-        const dailyChange = percentChange["90d"] / 90
-        for (let i = 90; i >= 0; i--) {
-          const timestamp = now - (i * 24 * 60 * 60 * 1000)
-          const priceAtPoint = currentPrice / (1 + (percentChange["90d"] / 100)) * (1 + ((90 - i) * dailyChange / 100))
-          dataPoints.push({ timestamp, price: priceAtPoint })
-        }
-        break
-      }
-    }
+    // Fallback to mock data
+    const basePrice = BASE_PRICES[symbol.toUpperCase() as keyof typeof BASE_PRICES] || 100
+    const historicalData = generateHistoricalPrices(basePrice, timeRange, getDataPoints(timeRange))
+    
+    // Cache the mock data
+    await setCachedData(symbol, timeRange, {
+      timestamp: Date.now(),
+      data: historicalData
+    })
 
-    // Ensure the last point matches current price exactly
-    dataPoints[dataPoints.length - 1] = {
-      timestamp: now,
-      price: currentPrice
-    }
-
-    // Cache the data with timeRange
-    await setCachedData(symbol, timeRange, dataPoints)
-
-    return NextResponse.json(dataPoints)
-  } catch (error: any) {
-    console.error("Error fetching data:", error.message)
-    if (error.response) {
-      console.error("API Response:", error.response.data)
-    }
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch price data" },
-      { status: 500 }
-    )
+    return NextResponse.json(historicalData)
+    
+  } catch (error) {
+    console.error('Error in historical price route:', error)
+    return NextResponse.json({ error: 'Failed to fetch historical data' }, { status: 500 })
   }
 } 

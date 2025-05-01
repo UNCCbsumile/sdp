@@ -9,6 +9,7 @@ import type { PortfolioItem } from "@/types/portfolio"
 import { formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
 import type { Strategy } from "@/types/strategy"
+import { useStrategies } from "@/hooks/use-strategies"
 
 // Props for the Portfolio component
 interface PortfolioProps {
@@ -22,6 +23,9 @@ interface PortfolioProps {
 
 // Main Portfolio component: shows balances, holdings, and transaction history
 export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPortfolio, strategies, getLastExecutionTime }: PortfolioProps) {
+  // Update the hook to include refreshStrategies
+  const { deleteStrategy, refreshStrategies } = useStrategies();
+
   // Handle reset without page refresh
   const handleReset = async () => {
     if (resetPortfolio) {
@@ -33,12 +37,21 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPo
 
   // Calculate portfolio items with current values and profit/loss
   const portfolioWithValues = portfolio.map((item) => {
-    const cryptoInfo = cryptoData.find((crypto) => crypto.symbol === item.symbol)
-    const currentPrice = cryptoInfo?.currentPrice || 0
-    const currentValue = item.amount * currentPrice
-    const profitLoss = currentValue - item.amount * item.averagePrice
-    const profitLossPercentage =
-      item.averagePrice > 0 ? ((currentPrice - item.averagePrice) / item.averagePrice) * 100 : 0
+    // Try to find crypto by symbol or ID (case-insensitive)
+    const cryptoInfo = cryptoData.find((crypto) => 
+      crypto.symbol.toLowerCase() === item.symbol.toLowerCase() || 
+      crypto.id.toLowerCase() === item.symbol.toLowerCase() ||
+      crypto.symbol.toLowerCase() === item.symbol.toLowerCase().replace('btc', 'bitcoin') ||
+      crypto.id.toLowerCase() === item.symbol.toLowerCase().replace('btc', 'bitcoin')
+    );
+
+    // Get current price, defaulting to the last known price if not found
+    const currentPrice = cryptoInfo?.currentPrice || item.averagePrice;
+    const currentValue = item.amount * currentPrice;
+    const profitLoss = currentValue - (item.amount * item.averagePrice);
+    const profitLossPercentage = item.averagePrice > 0 
+      ? ((currentPrice - item.averagePrice) / item.averagePrice) * 100 
+      : 0;
 
     return {
       ...item,
@@ -46,8 +59,9 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPo
       currentValue,
       profitLoss,
       profitLossPercentage,
-    }
-  })
+      displaySymbol: cryptoInfo?.symbol || item.symbol // Use the proper display symbol
+    };
+  });
 
   // Filter out USD and zero balance items for active crypto holdings
   const activePortfolio = portfolioWithValues.filter((item) => item.amount > 0 && item.symbol !== "USD")
@@ -57,25 +71,19 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPo
   // Calculate total value of crypto holdings (excluding USD)
   const totalValue = activePortfolio.reduce((sum, item) => sum + item.currentValue, 0)
 
-  const handleDeleteStrategy = async (strategyId: string) => {
+  // Update the delete handler to refresh the list after deletion
+  const handleDelete = async (strategyId: string) => {
     try {
-      const response = await fetch('/api/strategies', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id: strategyId }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete strategy');
-      }
-
-      // Refresh the page or update strategies list
+      console.log('Attempting to delete strategy:', strategyId);
+      await deleteStrategy(strategyId);
+      console.log('Strategy deleted, refreshing list...');
+      await refreshStrategies();
+      console.log('List refreshed, reloading page...');
+      toast.success("Strategy deleted successfully");
       window.location.reload();
     } catch (error) {
-      console.error('Error deleting strategy:', error);
-      toast.error('Failed to delete strategy');
+      console.error("Error deleting strategy:", error);
+      toast.error("Failed to delete strategy");
     }
   };
 
@@ -138,7 +146,7 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPo
                 {/* Render each holding as a table row */}
                 {activePortfolio.map((item) => (
                   <TableRow key={item.symbol}>
-                    <TableCell className="font-medium">{item.symbol}</TableCell>
+                    <TableCell className="font-medium">{item.displaySymbol}</TableCell>
                     <TableCell className="text-right">{item.amount.toFixed(8)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(item.averagePrice)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(item.currentPrice)}</TableCell>
@@ -201,8 +209,8 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPo
                               return 'Moving Average';
                             case 'DCA':
                               return 'Dollar-Cost Averaging';
-                            case 'GRID':
-                              return 'Grid Trading';
+                            case 'RSI':
+                              return 'Relative Strength Index';
                             default:
                               return strategy.config.type;
                           }
@@ -214,16 +222,18 @@ export default function Portfolio({ portfolio, cryptoData, executeOrder, resetPo
                           <>Amount: ${strategy.config.amount}, Interval: {strategy.config.interval}h</>
                         )}
                         {strategy.config.type === 'MOVING_AVERAGE' && (
-                          <>Amount: ${strategy.config.amount}, Short: {strategy.config.shortPeriod}d, Long: {strategy.config.longPeriod}d</>
+                          <>Amount: ${strategy.config.amount}, Short MA: {strategy.config.shortPeriod}, Long MA: {strategy.config.longPeriod}</>
                         )}
-                        {/* Add other strategy type displays as needed */}
+                        {strategy.config.type === 'RSI' && (
+                          <>Amount: ${strategy.config.amount}, Period: {strategy.config.period}, Levels: {strategy.config.oversold}/{strategy.config.overbought}</>
+                        )}
                       </TableCell>
                       <TableCell>{getLastExecutionTime ? getLastExecutionTime(strategy.id) : 'Never'}</TableCell>
                       <TableCell>
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleDeleteStrategy(strategy.id)}
+                          onClick={() => handleDelete(strategy.id)}
                         >
                           Delete
                         </Button>

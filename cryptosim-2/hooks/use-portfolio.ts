@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import type { PortfolioItem, Transaction } from "@/types/portfolio"
 import type { CryptoData } from "@/types/crypto"
 import { useUser } from "@/app/context/UserContext"
+import { toast } from "sonner"
 
 // Initial portfolio with starting USD balance
 const INITIAL_PORTFOLIO: PortfolioItem[] = [
@@ -138,6 +139,21 @@ export function usePortfolio(cryptoData: CryptoData[]) {
       return;
     }
 
+    // Check balances before executing
+    const usdBalance = portfolio.find(item => item.symbol === "USD")?.amount || 0;
+    const cryptoBalance = portfolio.find(item => item.symbol === symbol)?.amount || 0;
+    const totalCost = amount * price;
+
+    if (type === "buy" && totalCost > usdBalance) {
+      toast.error("Insufficient funds to complete this purchase");
+      return;
+    }
+
+    if (type === "sell" && amount > cryptoBalance) {
+      toast.error("Insufficient assets to complete this sale");
+      return;
+    }
+
     // Create unique transaction ID
     const transactionId = `${type}-${symbol}-${amount}-${price}-${now}`;
 
@@ -168,12 +184,6 @@ export function usePortfolio(cryptoData: CryptoData[]) {
       if (type === "buy") {
         const totalCost = amount * price;
 
-        // Check if user has enough USD
-        if (usdIndex === -1 || currentPortfolio[usdIndex].amount < totalCost) {
-          alert("Insufficient funds to complete this purchase.");
-          return;
-        }
-
         // Deduct USD
         currentPortfolio[usdIndex].amount -= totalCost;
         currentPortfolio[usdIndex].transactions.push(transaction);
@@ -202,31 +212,26 @@ export function usePortfolio(cryptoData: CryptoData[]) {
           currentPortfolio[assetIndex].transactions.push(transaction);
         }
       } else if (type === "sell") {
-        // Check if user has the asset and enough of it
-        if (assetIndex === -1 || currentPortfolio[assetIndex].amount < amount) {
-          alert("Insufficient assets to complete this sale.");
-          return;
-        }
+        const saleProceeds = amount * price;
 
-        const totalValue = amount * price;
-
-        // Add USD
-        if (usdIndex === -1) {
-          currentPortfolio.push({
-            symbol: "USD",
-            name: "US Dollar",
-            amount: totalValue,
-            averagePrice: 1,
-            transactions: [transaction],
-          });
-        } else {
-          currentPortfolio[usdIndex].amount += totalValue;
-          currentPortfolio[usdIndex].transactions.push(transaction);
-        }
+        // Add USD from sale
+        currentPortfolio[usdIndex].amount += saleProceeds;
+        currentPortfolio[usdIndex].transactions.push(transaction);
 
         // Update or remove the asset
         if (currentPortfolio[assetIndex].amount === amount) {
+          // If selling all, remove the asset but keep its transactions
+          const assetTransactions = currentPortfolio[assetIndex].transactions;
           currentPortfolio.splice(assetIndex, 1);
+          
+          // If this was the last of the asset, add a record to keep transaction history
+          currentPortfolio.push({
+            symbol,
+            name: symbol,
+            amount: 0,
+            averagePrice: 0,
+            transactions: [...assetTransactions, transaction]
+          });
         } else {
           currentPortfolio[assetIndex].amount -= amount;
           currentPortfolio[assetIndex].transactions.push(transaction);

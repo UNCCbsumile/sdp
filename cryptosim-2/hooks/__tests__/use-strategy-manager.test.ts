@@ -9,6 +9,16 @@ const mockLocalStorage = {
   setItem: jest.fn(),
 };
 
+// Mock console.error before all tests
+const originalConsoleError = console.error;
+beforeAll(() => {
+  console.error = jest.fn();
+});
+
+afterAll(() => {
+  console.error = originalConsoleError;
+});
+
 Object.defineProperty(window, 'localStorage', {
   value: mockLocalStorage,
 });
@@ -22,19 +32,23 @@ describe('useStrategyManager - DCA Strategy', () => {
       id: 'bitcoin',
       symbol: 'BTC',
       name: 'Bitcoin',
+      image: '/crypto-icons/btc.png',
       currentPrice: 50000,
-      priceChange24h: 0,
+      priceChangePercentage24h: 0,
       marketCap: 0,
-      volume24h: 0,
+      totalVolume: 0,
+      sparklineIn7d: { price: [] }
     },
     {
       id: 'ethereum',
       symbol: 'ETH',
       name: 'Ethereum',
+      image: '/crypto-icons/eth.png',
       currentPrice: 3000,
-      priceChange24h: 0,
+      priceChangePercentage24h: 0,
       marketCap: 0,
-      volume24h: 0,
+      totalVolume: 0,
+      sparklineIn7d: { price: [] }
     },
   ];
 

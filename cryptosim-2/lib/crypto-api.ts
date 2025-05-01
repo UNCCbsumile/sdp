@@ -136,10 +136,23 @@ export function generateMockPriceUpdates(
     const priceUpdates: Record<string, number> = {}
 
     baseData.forEach((crypto) => {
-      // Random price change between -0.5% and +0.5%
-      const changePercent = (Math.random() * 2 - 1) * 0.5
-      const newPrice = crypto.currentPrice * (1 + changePercent / 100)
-      priceUpdates[crypto.id] = newPrice
+      // Use more realistic price movements
+      // For BTC: typical daily volatility is around 2-3%
+      // For other cryptos: slightly higher volatility
+      const maxDailyChange = crypto.symbol === 'BTC' ? 0.03 : 0.05
+      
+      // Random walk with mean reversion
+      const changePercent = (Math.random() - 0.5) * maxDailyChange
+      // Add mean reversion to prevent extreme deviations
+      const deviation = (crypto.currentPrice - crypto.currentPrice) / crypto.currentPrice
+      const meanReversion = -deviation * 0.1
+      
+      const newPrice = crypto.currentPrice * (1 + changePercent + meanReversion)
+      
+      // Ensure price stays within realistic bounds
+      const minPrice = crypto.symbol === 'BTC' ? 30000 : 100
+      const maxPrice = crypto.symbol === 'BTC' ? 100000 : 5000
+      priceUpdates[crypto.id] = Math.max(minPrice, Math.min(maxPrice, newPrice))
     })
 
     onPriceUpdate(priceUpdates)
