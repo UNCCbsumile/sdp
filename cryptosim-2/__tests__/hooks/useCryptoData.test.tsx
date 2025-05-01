@@ -46,12 +46,12 @@ describe('useCryptoData', () => {
     const { fetchCryptoData } = require('@/lib/crypto-api');
     
     // Mock the fetch response
-    global.fetch = jest.fn(() =>
+    global.fetch = jest.fn((): Promise<Response> =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve(mockCryptoData)
-      })
-    ) as jest.Mock;
+      } as Response)
+    );
 
     const { result } = renderHook(() => useCryptoData());
 
@@ -83,9 +83,9 @@ describe('useCryptoData', () => {
     const { fetchCryptoData } = require('@/lib/crypto-api');
     
     // Mock a failed fetch
-    global.fetch = jest.fn(() =>
+    global.fetch = jest.fn((): Promise<Response> =>
       Promise.reject(new Error('API Error'))
-    ) as jest.Mock;
+    );
 
     const { result } = renderHook(() => useCryptoData());
 
@@ -116,12 +116,12 @@ describe('useCryptoData', () => {
     const { fetchCryptoData } = require('@/lib/crypto-api');
     
     // Mock the initial fetch
-    global.fetch = jest.fn(() =>
+    global.fetch = jest.fn((): Promise<Response> =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve(mockCryptoData)
-      })
-    ) as jest.Mock;
+      } as Response)
+    );
 
     const { result } = renderHook(() => useCryptoData());
 
@@ -134,12 +134,12 @@ describe('useCryptoData', () => {
     jest.clearAllMocks();
 
     // Set up new mock response for refresh
-    global.fetch = jest.fn(() =>
+    global.fetch = jest.fn((): Promise<Response> =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve(mockCryptoData)
-      })
-    ) as jest.Mock;
+      } as Response)
+    );
 
     // Trigger refresh and verify data updates
     await act(async () => {
