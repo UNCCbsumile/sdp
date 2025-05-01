@@ -1,6 +1,6 @@
 # CryptoSim
 
-A cryptocurrency portfolio simulator that allows users to test different trading strategies without risking real money.
+A cryptocurrency portfolio simulator that allows users to test different trading strategies without risking real money. Built with Next.js, React, and TypeScript. It uses a file-based storage system (JSON files) instead of a traditional database to store user data, portfolios, and trading strategies. The application connects to Binance's WebSocket API to get real-time cryptocurrency prices and allows users to test different trading strategies like Dollar-Cost Averaging (DCA), Moving Average, and Grid Trading. The frontend is built with modern UI components from shadcn/ui and styled with Tailwind CSS, while the backend uses Next.js API routes to handle authentication, portfolio management, and strategy execution. The system includes features like real-time price updates, portfolio tracking, strategy performance analysis, and a leaderboard for comparing results with other users.
 
 ## Quick Start
 
@@ -19,6 +19,11 @@ chmod +x init.sh
 3. Start the development server:
 ```bash
 npm run dev
+```
+
+3. Run unit testing:
+```bash
+npm test
 ```
 
 The app will be available at [http://localhost:3000](http://localhost:3000)
