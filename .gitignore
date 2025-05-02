@@ -39,6 +39,7 @@ yarn-error.log*
 next-env.d.ts
 
 # Application data and cache
+data/
 data/cache/
 data/portfolios/
 data/prices.csv
